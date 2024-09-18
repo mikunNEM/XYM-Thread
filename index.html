@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Symbol Thread</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="loading-spinner" style="display:none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- スレッド作成ボタン -->
+    <button id="open-modal">スレッドを作成✏️</button>
+
+    <!-- モーダルのHTML -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>スレッドを作成</h2>
+            <textarea id="thread-message" placeholder="メッセージを入力"></textarea>
+            <input type="number" id="xym-amount" placeholder="送金するXYMを入力" step="0.000001" min="0">
+            <button id="create-thread-button">作成</button>
+        </div>
+    </div>
+    
+    <!-- スレッド一覧を表示する場所 -->
+    <div id="thread-list"></div>
+
+    <!-- スタイルの適用 -->
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="https://xembook.github.io/nem2-browserify/symbol-sdk-pack-2.0.5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

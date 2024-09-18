@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スレッド詳細</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="loading-spinner" style="display:none;">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="thread-container"></div>
+
+    <div id="comment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>コメントを追加</h2>
+            <textarea id="comment-message" placeholder="コメントを入力"></textarea>
+            <input type="number" id="xym-amount" placeholder="送金するXYMを入力">
+            <button id="submit-comment">送信</button>
+        </div>
+    </div>
+    <button id="comment-button">コメントする</button>
+
+    <div id="thread-list"></div>
+
+    <script type="text/javascript" src="https://xembook.github.io/nem2-browserify/symbol-sdk-pack-2.0.5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <!-- <script src="script.js"></script> -->
+
+    <script>
+        const sym = require('/node_modules/symbol-sdk');
+
+        // URLからスレッドID（トランザクションハッシュ）を取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const transactionHash = urlParams.get('id');
+
+        //Repository setup to connect to the node
+        const NODE = 'https://symbol-mikun.net:3001';
+        const repo = new sym.RepositoryFactoryHttp(NODE);
+        const txRepo = repo.createTransactionRepository();
+        const epochAdjustment = 1615853185;
+
+        // トランザクションの詳細を取得してメッセージを表示
+        txRepo.getTransaction(transactionHash, sym.TransactionGroup.Confirmed).subscribe(tx => {
+            const message = tx.message.payload;  // トランザクションのメッセージを取得
+            const thread_owner = tx.signer.address.address;
+            document.getElementById('thread-container').innerHTML = `<h2>${message}</h2>`;
+
+            document.getElementById('submit-comment').addEventListener('click', function () {
+                const message = document.getElementById('comment-message').value;
+                const amount = document.getElementById('xym-amount').value;
+
+                if (!message || amount < 0.000001) {
+                    alert('コメントと送金するXYMを確認してください');
+                    return;
+                }
+
+                // コメントをSymbolブロックチェーンに送信する処理をここに追加
+                sendCommentTransaction(thread_owner, message, amount);
+
+                // モーダルを閉じる
+                document.getElementById('comment-modal').style.display = 'none';
+            });
+
+            // ページロード時にスレッドを表示する
+            window.addEventListener('load', displayThreads(thread_owner));
+
+        }, err => {
+            console.error('トランザクション取得エラー:', err);
+            document.getElementById('thread-container').innerHTML = `<h2>メッセージの取得に失敗しました</h2>`;
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // モーダルを開く
+            document.getElementById('comment-button').addEventListener('click', function () {
+                document.getElementById('comment-modal').style.display = 'block';
+            });
+
+            // モーダルを閉じる
+            document.querySelector('.close').addEventListener('click', function () {
+                document.getElementById('comment-modal').style.display = 'none';
+            });
+
+            // モーダル外をクリックした場合も閉じる
+            window.addEventListener('click', function (event) {
+                if (event.target == document.getElementById('comment-modal')) {
+                    document.getElementById('comment-modal').style.display = 'none';
+                }
+            });
+        });
+
+        function sendCommentTransaction(thread_owner, message, amount) {
+            const recipientAddress = sym.Address.createFromRawAddress(thread_owner); // スレッド作成者のアドレスにコメントを送信
+            const plainMessage = sym.PlainMessage.create(message);
+
+            // 送金するXYMの量を指定
+            const mosaic = new sym.Mosaic(
+                new sym.MosaicId("6BED913FA20223F8"), // SymbolのXYMのモザイクID
+                sym.UInt64.fromUint(amount * Math.pow(10, 6)) // XYMの最小単位で指定
+            );
+
+            const tx = sym.TransferTransaction.create(
+                sym.Deadline.create(epochAdjustment),
+                recipientAddress,  // 指定されたアドレスにコメントを送信
+                [mosaic], // 送金するXYMを指定
+                plainMessage,
+                sym.NetworkType.MAIN_NET
+            ).setMaxFee(100);
+
+            // トランザクションの署名と送信を行う
+            const transactionPayload = tx.serialize();
+            const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`;
+            window.location.href = aliceUrl;
+        }
+
+        function displayThreads(address) {
+            document.getElementById('loading-spinner').style.display = 'block'; // スピナーを表示
+
+            const recipientAddress = sym.Address.createFromRawAddress(address);
+
+            txRepo.search({
+                group: sym.TransactionGroup.Confirmed,
+                address: recipientAddress,
+                pageSize: 20,
+                order: sym.Order.Desc,
+            }).subscribe(threads => {
+                const threadContainer = document.getElementById('thread-list');
+                threadContainer.innerHTML = '';
+
+                threads.data.forEach(tx => {
+                    if (tx.message && tx.message.payload) {
+                        console.log("tx=", tx);
+                        const threadElement = document.createElement('div');
+                        threadElement.className = 'thread-item';
+
+                        const timestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
+                        const date = new Date(timestamp * 1000);
+
+                        const yyyy = `${date.getFullYear()}`;
+                        const MM = `0${date.getMonth() + 1}`.slice(-2);
+                        const dd = `0${date.getDate()}`.slice(-2);
+                        const HH = `0${date.getHours()}`.slice(-2);
+                        const mm = `0${date.getMinutes()}`.slice(-2);
+                        const ss = `0${date.getSeconds()}`.slice(-2);
+
+                        const ymdhms = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
+
+                        const xymAmount = tx.mosaics[0].amount.compact() / Math.pow(10, 6);
+                        const fontSize = Math.min(10 + xymAmount * 10, 50);
+
+                        threadElement.innerHTML = `
+                    <div class="thread-header">
+                        <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar">
+                        <div class="thread-info">
+                            <div class="thread-date">${ymdhms}</div>
+                            <div class="thread-amount">${xymAmount} XYM</div>
+                        </div>
+                    </div>
+                    <div class="thread-message" style="font-size: ${fontSize}px;">
+                        ${tx.message.payload}
+                    </div>
+                    <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
+                `;
+
+                        threadContainer.appendChild(threadElement);
+
+
+                        document.querySelectorAll('.open-thread-button').forEach(button => {
+                            button.addEventListener('click', function () {
+
+                                const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
+                                window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
+
+                                const threadTitle = 'テストスレッド';
+                                const avatarUrl = 'https://ventus-wallet.net/chat/avatar/1.png';
+
+                                console.log(threadElement.querySelector('.open-thread-button'));
+
+
+                                if (comments.length === 0) {
+                                    displayEmptyThread(threadTitle, avatarUrl);
+                                } else {
+                                    displayThreadWithComments(threadTitle, avatarUrl, comments);
+                                }
+                            });
+                        });
+
+
+                    }
+                });
+
+
+                document.getElementById('loading-spinner').style.display = 'none'; // 読み込み完了後スピナーを非表示
+            }, err => {
+                console.error('トランザクション取得エラー:', err);
+                document.getElementById('loading-spinner').style.display = 'none'; // エラー時もスピナーを非表示
+            });
+        }
+
+        function getRandomImage(publicKey) {
+            const hash = CryptoJS.SHA256(publicKey).toString();
+            const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
+            return `https://ventus-wallet.net/chat/avatar/${index}.png`; // ランダムな画像URLを返す
+        }
+
+    </script>
+</body>
+
+</html>
