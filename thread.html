@@ -68,7 +68,7 @@
             });
 
             // ページロード時にスレッドを表示する
-            window.addEventListener('load', displayThreads(thread_owner));
+            window.addEventListener('load', displayThreads(thread_owner, transactionHash));
 
         }, err => {
             console.error('トランザクション取得エラー:', err);
@@ -94,31 +94,33 @@
             });
         });
 
-        function sendCommentTransaction(thread_owner, message, amount) {
-            const recipientAddress = sym.Address.createFromRawAddress(thread_owner); // スレッド作成者のアドレスにコメントを送信
-            const plainMessage = sym.PlainMessage.create(message);
+        function sendCommentTransaction(thread_owner, message, amount, transactionHash) {
+            const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
+            const taggedMessage = `${shortTag} ${message}`;  // タグをメッセージの先頭に追加
 
-            // 送金するXYMの量を指定
+            const recipientAddress = sym.Address.createFromRawAddress(thread_owner);
+            const plainMessage = sym.PlainMessage.create(taggedMessage);
+
             const mosaic = new sym.Mosaic(
-                new sym.MosaicId("6BED913FA20223F8"), // SymbolのXYMのモザイクID
-                sym.UInt64.fromUint(amount * Math.pow(10, 6)) // XYMの最小単位で指定
+                new sym.MosaicId("6BED913FA20223F8"),
+                sym.UInt64.fromUint(amount * Math.pow(10, 6))
             );
 
             const tx = sym.TransferTransaction.create(
                 sym.Deadline.create(epochAdjustment),
-                recipientAddress,  // 指定されたアドレスにコメントを送信
-                [mosaic], // 送金するXYMを指定
+                recipientAddress,
+                [mosaic],
                 plainMessage,
                 sym.NetworkType.MAIN_NET
             ).setMaxFee(100);
 
-            // トランザクションの署名と送信を行う
             const transactionPayload = tx.serialize();
             const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`;
             window.location.href = aliceUrl;
         }
 
-        function displayThreads(address) {
+        function displayThreads(address, transactionHash) {
+            const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
             document.getElementById('loading-spinner').style.display = 'block'; // スピナーを表示
 
             const recipientAddress = sym.Address.createFromRawAddress(address);
@@ -134,26 +136,29 @@
 
                 threads.data.forEach(tx => {
                     if (tx.message && tx.message.payload) {
-                        console.log("tx=", tx);
-                        const threadElement = document.createElement('div');
-                        threadElement.className = 'thread-item';
+                        const message = tx.message.payload;
+                        if (message.startsWith(shortTag)) {  // 識別タグでフィルタリング
+                            const commentContent = message.replace(`${shortTag} `, '');  // タグを除去して表示
+                            console.log("tx=", tx);
+                            const threadElement = document.createElement('div');
+                            threadElement.className = 'thread-item';
 
-                        const timestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
-                        const date = new Date(timestamp * 1000);
+                            const timestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
+                            const date = new Date(timestamp * 1000);
 
-                        const yyyy = `${date.getFullYear()}`;
-                        const MM = `0${date.getMonth() + 1}`.slice(-2);
-                        const dd = `0${date.getDate()}`.slice(-2);
-                        const HH = `0${date.getHours()}`.slice(-2);
-                        const mm = `0${date.getMinutes()}`.slice(-2);
-                        const ss = `0${date.getSeconds()}`.slice(-2);
+                            const yyyy = `${date.getFullYear()}`;
+                            const MM = `0${date.getMonth() + 1}`.slice(-2);
+                            const dd = `0${date.getDate()}`.slice(-2);
+                            const HH = `0${date.getHours()}`.slice(-2);
+                            const mm = `0${date.getMinutes()}`.slice(-2);
+                            const ss = `0${date.getSeconds()}`.slice(-2);
 
-                        const ymdhms = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
+                            const ymdhms = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
 
-                        const xymAmount = tx.mosaics[0].amount.compact() / Math.pow(10, 6);
-                        const fontSize = Math.min(10 + xymAmount * 10, 50);
+                            const xymAmount = tx.mosaics[0].amount.compact() / Math.pow(10, 6);
+                            const fontSize = Math.min(10 + xymAmount * 10, 50);
 
-                        threadElement.innerHTML = `
+                            threadElement.innerHTML = `
                     <div class="thread-header">
                         <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar">
                         <div class="thread-info">
@@ -162,35 +167,35 @@
                         </div>
                     </div>
                     <div class="thread-message" style="font-size: ${fontSize}px;">
-                        ${tx.message.payload}
+                        ${commentContent}
                     </div>
                     <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
                 `;
 
-                        threadContainer.appendChild(threadElement);
+                            threadContainer.appendChild(threadElement);
 
 
-                        document.querySelectorAll('.open-thread-button').forEach(button => {
-                            button.addEventListener('click', function () {
+                            document.querySelectorAll('.open-thread-button').forEach(button => {
+                                button.addEventListener('click', function () {
 
-                                const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
-                                window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
+                                    const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
+                                    window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
 
-                                const threadTitle = 'テストスレッド';
-                                const avatarUrl = 'https://ventus-wallet.net/chat/avatar/1.png';
+                                    const threadTitle = 'テストスレッド';
+                                    const avatarUrl = 'https://ventus-wallet.net/chat/avatar/1.png';
 
-                                console.log(threadElement.querySelector('.open-thread-button'));
+                                    console.log(threadElement.querySelector('.open-thread-button'));
 
 
-                                if (comments.length === 0) {
-                                    displayEmptyThread(threadTitle, avatarUrl);
-                                } else {
-                                    displayThreadWithComments(threadTitle, avatarUrl, comments);
-                                }
+                                    if (comments.length === 0) {
+                                        displayEmptyThread(threadTitle, avatarUrl);
+                                    } else {
+                                        displayThreadWithComments(threadTitle, avatarUrl, comments);
+                                    }
+                                });
                             });
-                        });
 
-
+                        }
                     }
                 });
 
@@ -200,6 +205,10 @@
                 console.error('トランザクション取得エラー:', err);
                 document.getElementById('loading-spinner').style.display = 'none'; // エラー時もスピナーを非表示
             });
+
+            function generateShortTag(transactionHash) {
+                return `#${transactionHash.substring(0, 5)}`;  // ハッシュの最初の5桁をタグとして利用
+            }
         }
 
         function getRandomImage(publicKey) {
@@ -207,6 +216,8 @@
             const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
             return `https://ventus-wallet.net/chat/avatar/${index}.png`; // ランダムな画像URLを返す
         }
+
+
 
     </script>
 </body>
