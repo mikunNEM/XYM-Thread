@@ -161,7 +161,7 @@ h2 {
 }
 
 .open-thread-button {
-    background-color: #4CAF50;
+    background-color: #6c8bfd;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -173,7 +173,7 @@ h2 {
 }
 
 .open-thread-button:hover {
-    background-color: #45a049;
+    background-color: #2f7bff;
 }
 
 /* Spinner centered */

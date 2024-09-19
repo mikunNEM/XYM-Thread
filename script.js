@@ -132,17 +132,14 @@ function displayThreads() {
                         const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
                         window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
 
-                        const threadTitle = 'テストスレッド';
-                        const avatarUrl = 'https://ventus-wallet.net/chat/avatar/1.png';
-
                         console.log(threadElement.querySelector('.open-thread-button'));
 
 
-                        if (comments.length === 0) {
+                  /*      if (comments.length === 0) {
                             displayEmptyThread(threadTitle, avatarUrl);
                         } else {
                             displayThreadWithComments(threadTitle, avatarUrl, comments);
-                        }
+                        }  */
                     });
                 });
 
@@ -162,13 +159,8 @@ function displayThreads() {
 function getRandomImage(publicKey) {
     const hash = CryptoJS.SHA256(publicKey).toString();
     const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
-    return `https://ventus-wallet.net/chat/avatar/${index}.png`; // ランダムな画像URLを返す
+    return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
 }
-
-const comments = [
-    { avatarUrl: 'https://ventus-wallet.net/chat/avatar/1.png', date: '2024-09-14 12:00', text: '最初のコメントです。' },
-    { avatarUrl: 'https://ventus-wallet.net/chat/avatar/2.png', date: '2024-09-14 13:00', text: '次のコメントです。' }
-];
 
 
 function displayEmptyThread(threadTitle, avatarUrl) {

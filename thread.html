@@ -38,6 +38,7 @@
         // URLからスレッドID（トランザクションハッシュ）を取得
         const urlParams = new URLSearchParams(window.location.search);
         const transactionHash = urlParams.get('id');
+        const shortTag = `#${transactionHash.substring(0, 5)}`;
 
         //Repository setup to connect to the node
         const NODE = 'https://symbol-mikun.net:3001';
@@ -49,6 +50,8 @@
         txRepo.getTransaction(transactionHash, sym.TransactionGroup.Confirmed).subscribe(tx => {
             const message = tx.message.payload;  // トランザクションのメッセージを取得
             const thread_owner = tx.signer.address.address;
+
+            console.log("message=",message);
             document.getElementById('thread-container').innerHTML = `<h2>${message}</h2>`;
 
             document.getElementById('submit-comment').addEventListener('click', function () {
@@ -61,14 +64,14 @@
                 }
 
                 // コメントをSymbolブロックチェーンに送信する処理をここに追加
-                sendCommentTransaction(thread_owner, message, amount);
+                sendCommentTransaction(thread_owner, message, amount, shortTag);
 
                 // モーダルを閉じる
                 document.getElementById('comment-modal').style.display = 'none';
             });
 
             // ページロード時にスレッドを表示する
-            window.addEventListener('load', displayThreads(thread_owner, transactionHash));
+            window.addEventListener('load', displayThreads(thread_owner, shortTag));
 
         }, err => {
             console.error('トランザクション取得エラー:', err);
@@ -94,10 +97,11 @@
             });
         });
 
-        function sendCommentTransaction(thread_owner, message, amount, transactionHash) {
-            const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
+        function sendCommentTransaction(thread_owner, message, amount, shortTag) {
+           // const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
             const taggedMessage = `${shortTag} ${message}`;  // タグをメッセージの先頭に追加
 
+            console.log("Message=",taggedMessage);
             const recipientAddress = sym.Address.createFromRawAddress(thread_owner);
             const plainMessage = sym.PlainMessage.create(taggedMessage);
 
@@ -119,8 +123,8 @@
             window.location.href = aliceUrl;
         }
 
-        function displayThreads(address, transactionHash) {
-            const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
+        function displayThreads(address, shortTag) {
+            //const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
             document.getElementById('loading-spinner').style.display = 'block'; // スピナーを表示
 
             const recipientAddress = sym.Address.createFromRawAddress(address);
@@ -181,17 +185,17 @@
                                     const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
                                     window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
 
-                                    const threadTitle = 'テストスレッド';
-                                    const avatarUrl = 'https://ventus-wallet.net/chat/avatar/1.png';
+                                    //const threadTitle = 'テストスレッド';
+                                    //const avatarUrl = 'https://ventus-wallet.net/chat/avatar/1.png';
 
                                     console.log(threadElement.querySelector('.open-thread-button'));
 
 
-                                    if (comments.length === 0) {
+                                /*    if (comments.length === 0) {
                                         displayEmptyThread(threadTitle, avatarUrl);
                                     } else {
                                         displayThreadWithComments(threadTitle, avatarUrl, comments);
-                                    }
+                                    } */
                                 });
                             });
 
@@ -205,19 +209,13 @@
                 console.error('トランザクション取得エラー:', err);
                 document.getElementById('loading-spinner').style.display = 'none'; // エラー時もスピナーを非表示
             });
-
-            function generateShortTag(transactionHash) {
-                return `#${transactionHash.substring(0, 5)}`;  // ハッシュの最初の5桁をタグとして利用
-            }
         }
 
         function getRandomImage(publicKey) {
             const hash = CryptoJS.SHA256(publicKey).toString();
             const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
-            return `https://ventus-wallet.net/chat/avatar/${index}.png`; // ランダムな画像URLを返す
+            return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
         }
-
-
 
     </script>
 </body>
