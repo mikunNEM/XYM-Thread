@@ -71,7 +71,8 @@ textarea, input[type="number"] {
 }
 
 /* Button Styling */
-button {
+
+button.create-thread {
     background-color: #4CAF50;
     color: white;
     border: none;
@@ -85,9 +86,28 @@ button {
     transition: background-color 0.3s ease;
 }
 
-button:hover {
+button.create-thread:hover {
     background-color: #45a049;
 }
+
+button.reply-comment {  /* button.create-thread と同じ */
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 280px;
+    display: block;
+    margin: 20px auto;
+    transition: background-color 0.3s ease;
+}
+
+button.reply-comment:hover {
+    background-color: #45a049;
+}
+
 
 h2 {
     font-family: 'Arial', sans-serif;
@@ -118,7 +138,7 @@ h2 {
 .thread-item {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     background-color: #f9f9f9;
     margin: 10px;
     padding:10px;
@@ -161,10 +181,13 @@ h2 {
 }
 
 .open-thread-button {
+    align-self: flex-end; 
+    margin-left: auto; /* Ensure it pushes the button to the right */
     background-color: #6c8bfd;
     color: white;
     border: none;
     padding: 10px 20px;
+    width: auto; 
     font-size: 20px;
     cursor: pointer;
     margin-top: 20px;

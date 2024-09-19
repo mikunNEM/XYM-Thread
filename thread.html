@@ -24,7 +24,7 @@
             <button id="submit-comment">送信</button>
         </div>
     </div>
-    <button id="comment-button">コメントする</button>
+    <button id="comment-button" class="reply-comment">コメントする</button>
 
     <div id="thread-list"></div>
 
@@ -52,7 +52,7 @@
             const thread_owner = tx.signer.address.address;
 
             console.log("message=",message);
-            document.getElementById('thread-container').innerHTML = `<div style="text-align: center">
+            document.getElementById('thread-container').innerHTML = `<div style="text-align: center">&nbsp;&nbsp;
             <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar"></div>
             <h2>${message}</h2>`;
 
