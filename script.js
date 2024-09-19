@@ -134,12 +134,6 @@ function displayThreads() {
 
                         console.log(threadElement.querySelector('.open-thread-button'));
 
-
-                  /*      if (comments.length === 0) {
-                            displayEmptyThread(threadTitle, avatarUrl);
-                        } else {
-                            displayThreadWithComments(threadTitle, avatarUrl, comments);
-                        }  */
                     });
                 });
 
@@ -161,59 +155,6 @@ function getRandomImage(publicKey) {
     const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
     return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
 }
-
-
-function displayEmptyThread(threadTitle, avatarUrl) {
-    console.log('displayEmptyThreadが実行されました'); // 追加
-    const threadContainer = document.getElementById('thread-container');
-    threadContainer.innerHTML = `
-        <div class="thread-popup">
-            <img src="${avatarUrl}" alt="Avatar" class="avatar">
-            <h2>${threadTitle}</h2>
-            <p>まだコメントはありません。最初のコメントを書いてみませんか？</p>
-            <button id="comment-button" class="comment-button">コメントする</button>
-        </div>
-    `;
-}
-
-function displayThreadWithComments(threadTitle, avatarUrl, comments) {
-    console.log('displayThreadWithCommentsが実行されました'); // 追加
-    // thread-container が存在しない場合は作成
-    let threadContainer = document.getElementById('thread-container');
-    if (!threadContainer) {
-        threadContainer = document.createElement('div');
-        threadContainer.id = 'thread-container';
-        document.body.appendChild(threadContainer); // 必要な場所に追加
-    }
-
-    let commentsHtml = '';
-
-    comments.forEach(comment => {
-        commentsHtml += `
-            <div class="comment">
-                <img src="${comment.avatarUrl}" alt="Avatar" class="avatar">
-                <div class="comment-details">
-                    <p>${comment.date}</p>
-                    <p>${comment.text}</p>
-                </div>
-            </div>
-        `;
-    });
-
-    threadContainer.innerHTML = `
-        <div class="thread-popup">
-            <img src="${avatarUrl}" alt="Avatar" class="avatar">
-            <h2>${threadTitle}</h2>
-            ${commentsHtml}
-            <button id="comment-button" class="comment-button">コメントする</button>
-        </div>
-    `;
-
-    console.log('thread-container: ', document.getElementById('thread-container'));
-
-
-}
-
 
 
 function sendCommentTransaction(thread_owner, message, amount) {
