@@ -82,7 +82,7 @@ function displayThreads() {
     txRepo.search({
         group: sym.TransactionGroup.Confirmed,
         address: recipientAddress,
-        pageSize: 20,
+        pageSize: 100,
         order: sym.Order.Desc,
     }).subscribe(threads => {
         const threadContainer = document.getElementById('thread-list');
