@@ -1,3 +1,8 @@
+body {
+    background: linear-gradient(135deg, #f3f3f3, #e0e0e0); /* グラデーション背景 */
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -67,13 +72,14 @@ textarea, input[type="number"] {
     border-radius: 5px;
     font-size: 16px;
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+    /*font-family: 'Arial', sans-serif; */
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
 }
 
 /* Button Styling */
 
-button.create-thread {
-    background-color: #4CAF50;
+button.create-thread, button.reply-comment {
+    background: linear-gradient(to bottom, #4CAF50, #2F8F2F); /* グラデーション */
     color: white;
     border: none;
     padding: 12px 20px;
@@ -83,46 +89,37 @@ button.create-thread {
     width: 280px;
     display: block;
     margin: 20px auto;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* 立体感 */
 }
 
-button.create-thread:hover {
-    background-color: #45a049;
+button.create-thread:hover, button.reply-comment:hover {
+    background: linear-gradient(to bottom, #3E8E41, #267A26);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
 }
 
-button.reply-comment {  /* button.create-thread と同じ */
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    font-size: 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 280px;
-    display: block;
-    margin: 20px auto;
-    transition: background-color 0.3s ease;
-}
-
-button.reply-comment:hover {
-    background-color: #45a049;
+button.create-thread:active, button.reply-comment:active {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(2px); /* 押した感 */
 }
 
 
 h2 {
-    font-family: 'Arial', sans-serif;
+    /*font-family: 'Arial', sans-serif;*/
     font-size: 24px;
     color: #333;
     text-align: center;
     margin-bottom: 20px;
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
 }
 
 h3 {
-    font-family: 'Arial', sans-serif;
+   /* font-family: 'Arial', sans-serif;*/
     font-size: 24px;
     color: blue;
     text-align: center;
     margin-bottom: 20px;
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
 }
 
 /* Center thread list */
@@ -150,11 +147,14 @@ h3 {
     background-color: #f9f9f9;
     margin: 10px;
     padding:10px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 700px;
-    border: 2px solid #94b9ff;
+    /* border: 2px solid #94b9ff; */
+    /*border: none;*/
+    border: 2px solid rgba(100, 149, 237, 0.8); /* グロー効果 */
+    box-shadow: 0 0 10px rgba(100, 149, 237, 0.5); /* 光るエフェクト */
 }
 
 .thread-header {
@@ -187,13 +187,14 @@ h3 {
     font-size: 24px;
     text-align: center;
     color:blue;
-    font-family: 'Arial', sans-serif;
+    /*font-family: 'Arial', sans-serif;*/
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
 }
 
 .open-thread-button {
     align-self: flex-end; 
-    margin-left: auto; /* Ensure it pushes the button to the right */
-    background-color: #6c8bfd;
+    margin-left: auto; 
+    background: linear-gradient(to bottom, #6c8bfd, #5a7ecc);
     color: white;
     border: none;
     padding: 5px 7px;
@@ -202,11 +203,18 @@ h3 {
     cursor: pointer;
     margin-top: 20px;
     border-radius: 5px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .open-thread-button:hover {
-    background-color: #2f7bff;
+    background: linear-gradient(to bottom, #2f7bff, #1a5ebb);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+}
+
+.open-thread-button:active {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(2px);
 }
 
 /* Spinner centered */
