@@ -19,6 +19,7 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>コメントを追加</h2>
+            <div id="thread_address"></div>
             <textarea id="comment-message" placeholder="コメントを入力"></textarea>
             <input type="number" id="xym-amount" placeholder="送金するXYMを入力">
             <button id="submit-comment" class="create-thread">送信</button>
@@ -48,12 +49,16 @@
 
         // トランザクションの詳細を取得してメッセージを表示
         txRepo.getTransaction(transactionHash, sym.TransactionGroup.Confirmed).subscribe(tx => {
-            const message = tx.message.payload;  // トランザクションのメッセージを取得
+            let message = tx.message.payload;  // トランザクションのメッセージを取得
             const thread_owner = tx.signer.address.address;
 
+            document.getElementById('thread_address').innerHTML =`${thread_owner}`; // コメントモーダルにアドレス表示
+
+            let thread_title = message.replace(/^#\w{5}\s/, '');
+            
             document.getElementById('thread-container').innerHTML = `<div style="text-align: center">&nbsp;&nbsp;
             <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar"></div>
-            <h3>${message}</h3>`;
+            <h3>${thread_title}</h3>`;
 
             document.getElementById('submit-comment').addEventListener('click', function () {
                 const message = document.getElementById('comment-message').value;
@@ -82,7 +87,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             // モーダルを開く
             document.getElementById('comment-button').addEventListener('click', function () {
-                document.getElementById('comment-modal').style.display = 'block';
+                document.getElementById('comment-modal').style.display = 'flex';
             });
 
             // モーダルを閉じる
@@ -198,16 +203,16 @@
                 });
 
                 if (!hasComments) {
-                        // コメントがない場合の表示処理
-                        const threadElement = document.createElement('div');
-                        threadElement.className = 'thread-item';
-                        threadElement.innerHTML = `
+                    // コメントがない場合の表示処理
+                    const threadElement = document.createElement('div');
+                    threadElement.className = 'thread-item';
+                    threadElement.innerHTML = `
                         <div class="thread-message" style="font-size: 20px;">
                             コメントはまだありません
                         </div>
                     `;
-                        threadContainer.appendChild(threadElement);
-                    }
+                    threadContainer.appendChild(threadElement);
+                }
 
 
                 document.getElementById('loading-spinner').style.display = 'none'; // 読み込み完了後スピナーを非表示

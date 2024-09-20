@@ -136,11 +136,11 @@ h3 {
 #thread-list div {
     width: 95%; 
     max-width: 800px; 
-    padding: 10px;
-   /* margin-bottom: 10px;*/
+    /* padding: 10px;*/
+    /* margin-bottom: 10px;*/
     background-color: #f9f9f9;
     border-radius: 5px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    /*box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);*/
 }
 
 .thread-item {
@@ -154,6 +154,7 @@ h3 {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 700px;
+    border: 2px solid #94b9ff;
 }
 
 .thread-header {
@@ -186,6 +187,7 @@ h3 {
     font-size: 24px;
     text-align: center;
     color:blue;
+    font-family: 'Arial', sans-serif;
 }
 
 .open-thread-button {
@@ -194,7 +196,7 @@ h3 {
     background-color: #6c8bfd;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 5px 7px;
     width: auto; 
     font-size: 20px;
     cursor: pointer;
@@ -262,6 +264,7 @@ h3 {
     cursor: pointer;
     font-size: 18px;
     transition: background-color 0.3s ease;
+    justify-content: center;
 }
 
 .comment-button:hover {
