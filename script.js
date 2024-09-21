@@ -91,7 +91,7 @@ window.addEventListener('load', displayThreads);
 function displayThreads() {
     document.getElementById('loading-spinner').style.display = 'block'; // スピナーを表示
 
-    const recipientAddress = sym.Address.createFromRawAddress('NCAK7LZJDGQ3QW23SS475WOAGO66BNG6TO55R2Y');
+    const recipientAddress = sym.Address.createFromRawAddress('NB2TFCNBOXNG6FU2JZ7IA3SLYOYZ24BBZAUPAOA');
 
     txRepo.search({
         group: sym.TransactionGroup.Confirmed,
