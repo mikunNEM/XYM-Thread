@@ -45,7 +45,7 @@ function createThread() {
 
 // スレッドメッセージとXYMをSymbolブロックチェーンに送信する
 function sendThreadTransaction(message, amount) {
-    const recipientAddress = sym.Address.createFromRawAddress('NCAK7LZJDGQ3QW23SS475WOAGO66BNG6TO55R2Y');
+    const recipientAddress = sym.Address.createFromRawAddress('NB2TFCNBOXNG6FU2JZ7IA3SLYOYZ24BBZAUPAOA');
     const plainMessage = sym.PlainMessage.create(message);
 
     // 送金するXYMの量を指定
