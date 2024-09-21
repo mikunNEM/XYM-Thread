@@ -31,6 +31,7 @@
 
     <script type="text/javascript" src="https://xembook.github.io/nem2-browserify/symbol-sdk-pack-2.0.5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- <script src="script.js"></script> -->
 
     <script>
@@ -52,10 +53,10 @@
             let message = tx.message.payload;  // トランザクションのメッセージを取得
             const thread_owner = tx.signer.address.address;
 
-            document.getElementById('thread_address').innerHTML =`${thread_owner}`; // コメントモーダルにアドレス表示
+            document.getElementById('thread_address').innerHTML = `<span style="font-size: 13px;">To:<br>${thread_owner}</span>`; // コメントモーダルにアドレス表示
 
             let thread_title = message.replace(/^#\w{5}\s/, '');
-            
+
             document.getElementById('thread-container').innerHTML = `<div style="text-align: center">&nbsp;&nbsp;
             <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar"></div>
             <h3>${thread_title}</h3>`;
@@ -124,12 +125,27 @@
                 sym.NetworkType.MAIN_NET
             ).setMaxFee(100);
 
-            const transactionPayload = tx.serialize();
-            const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`;
-            window.location.href = aliceUrl;
+            if (window.innerWidth <= 768) {  // ウィンドウサイズで aLice / SSS を切り替える。
+                const transactionPayload = tx.serialize();
+                const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`;
+                window.location.href = aliceUrl;
+            } else {
+                window.SSS.setTransaction(tx);
+                window.SSS.requestSign().then(signedTx => {   // SSSを用いた署名をユーザーに要求
+                    console.log('signedTx', signedTx);
+                    txRepo.announce(signedTx).subscribe(() => {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'アナウンスが送信されました！',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
+                    });
+                })
+            }
         }
 
-        
+
         function displayThreads(address, shortTag) {
             //const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
             document.getElementById('loading-spinner').style.display = 'block'; // スピナーを表示

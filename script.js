@@ -6,9 +6,9 @@ const epochAdjustment = 1615853185;
 
 // モーダルを開く
 //document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('open-modal').addEventListener('click', function () {
-        document.getElementById('modal').style.display = 'flex'; // flexで中央配置
-    });
+document.getElementById('open-modal').addEventListener('click', function () {
+    document.getElementById('modal').style.display = 'flex'; // flexで中央配置
+});
 
 
 // モーダルを閉じる
@@ -62,12 +62,26 @@ function sendThreadTransaction(message, amount) {
         sym.NetworkType.MAIN_NET
     ).setMaxFee(100);
 
-    // トランザクションの署名と送信をaLiceアプリで行う
-    const transactionPayload = tx.serialize();
-    //const arrayBuffer = new TextEncoder().encode(`https://ventus-wallet.net/chat/index.html`);
-    //const callback = Array.from(new Uint8Array(arrayBuffer), byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
-    const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`; //&deadline=3600&callback=${callback}`;
-    window.location.href = aliceUrl;
+    if (window.innerWidth <= 768) {  // ウィンドウサイズで aLice / SSS を切り替える。
+        const transactionPayload = tx.serialize();
+        //const arrayBuffer = new TextEncoder().encode(`https://ventus-wallet.net/chat/index.html`);
+        //const callback = Array.from(new Uint8Array(arrayBuffer), byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+        const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`; //&deadline=3600&callback=${callback}`;
+        window.location.href = aliceUrl;
+    } else {
+        window.SSS.setTransaction(tx);
+        window.SSS.requestSign().then(signedTx => {   // SSSを用いた署名をユーザーに要求
+            console.log('signedTx', signedTx);
+            txRepo.announce(signedTx).subscribe(() => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'アナウンスが送信されました！',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+            });
+        })
+    }
 }
 
 
@@ -156,7 +170,7 @@ function getRandomImage(publicKey) {
     return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
 }
 
-
+/*
 function sendCommentTransaction(thread_owner, message, amount) {
     const recipientAddress = sym.Address.createFromRawAddress(thread_owner); // スレッド作成者のアドレスにコメントを送信
     const plainMessage = sym.PlainMessage.create(message);
@@ -179,4 +193,4 @@ function sendCommentTransaction(thread_owner, message, amount) {
     const transactionPayload = tx.serialize();
     const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`;
     window.location.href = aliceUrl;
-}
+} */
