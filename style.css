@@ -278,3 +278,26 @@ h3 {
 .comment-button:hover {
     background-color: #45a049;
 }
+
+#home-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    text-decoration: none;
+}
+
+#home-icon {
+    width: 50px; /* 画像のサイズを調整 */
+    height: 50px;
+    border-radius: 50%; /* 画像を丸くする場合 */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+#home-icon:hover {
+    transform: scale(1.1); /* ホバー時の拡大効果 */
+}
+
+
+
+
