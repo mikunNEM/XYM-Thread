@@ -1,3 +1,20 @@
+#header {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#header img {
+    width: 95%; /* Adjust the width to fit the container */
+    /* max-width: 1200px; /* Limit the maximum width */
+    height: auto;
+}
+
+@media screen and (max-width: 768px) {
+    #header img {
+        width: 95%; /* Slightly reduced width for mobile */
+    }
+}
+
 body {
     background: linear-gradient(135deg, #f3f3f3, #e0e0e0); /* グラデーション背景 */
     font-family: 'Poppins', sans-serif; /* モダンフォント */
