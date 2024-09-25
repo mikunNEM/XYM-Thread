@@ -34,10 +34,23 @@ function createThread() {
     const message = document.getElementById('thread-message').value;
     const amount = document.getElementById('xym-amount').value;
 
-    if (!message || amount < 0.000001) {
-        alert('メッセージと送金するXYMを確認してください');
+    if (window.SSS.activeNetworkType !== 104) {
+        Swal.fire(`アクティブアカウントのネットワークを確認してください
+            
+                 ${window.SSS.activeAddress}`);
         return;
     }
+
+    if (!message || amount < 0.000001) {
+        Swal.fire('メッセージと送金するXYMを確認してください');
+        return;
+    }
+
+    if (bytelength(message) > 1023) {
+        Swal.fire(`メッセージのサイズが${bytelength(message)}バイトです!!          
+                   1023バイト 以下にしてください。`);
+        return;
+      }
 
     // スレッドメッセージをSymbolのトランザクションとして送信
     sendThreadTransaction(message, amount);
@@ -170,27 +183,8 @@ function getRandomImage(publicKey) {
     return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
 }
 
-/*
-function sendCommentTransaction(thread_owner, message, amount) {
-    const recipientAddress = sym.Address.createFromRawAddress(thread_owner); // スレッド作成者のアドレスにコメントを送信
-    const plainMessage = sym.PlainMessage.create(message);
+function bytelength(s) {
+    return encodeURI(s).replace(/%../g, "*").length;
+}
 
-    // 送金するXYMの量を指定
-    const mosaic = new sym.Mosaic(
-        new sym.MosaicId("6BED913FA20223F8"), // SymbolのXYMのモザイクID
-        sym.UInt64.fromUint(amount * Math.pow(10, 6)) // XYMの最小単位で指定
-    );
 
-    const tx = sym.TransferTransaction.create(
-        sym.Deadline.create(epochAdjustment),
-        recipientAddress,  // 指定されたアドレスにコメントを送信
-        [mosaic], // 送金するXYMを指定
-        plainMessage,
-        sym.NetworkType.MAIN_NET
-    ).setMaxFee(100);
-
-    // トランザクションの署名と送信を行う
-    const transactionPayload = tx.serialize();
-    const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${sym.Convert.utf8ToHex(NODE)}&method=announce`;
-    window.location.href = aliceUrl;
-} */

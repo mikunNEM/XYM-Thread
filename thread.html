@@ -15,7 +15,7 @@
 
     <a href="index.html" id="home-button">
         <img src="src/home.png" alt="ホーム" id="home-icon">
-    </a>    
+    </a>
 
     <div id="thread-container"></div>
 
@@ -69,8 +69,21 @@
                 const message = document.getElementById('comment-message').value;
                 const amount = document.getElementById('xym-amount').value;
 
+                if (window.SSS.activeNetworkType !== 104) {
+                    Swal.fire(`アクティブアカウントのネットワークを確認してください
+                    
+                             ${window.SSS.activeAddress}`);
+                    return;
+                }
+
                 if (!message || amount < 0.000001) {
-                    alert('コメントと送金するXYMを確認してください');
+                    Swal.fire('コメントと送金するXYMを確認してください');
+                    return;
+                }
+
+                if (bytelength(message) > 1023) {
+                    Swal.fire(`メッセージのサイズが${bytelength(message)}バイトです!!          
+                              1023バイト 以下にしてください。`);
                     return;
                 }
 
@@ -247,6 +260,10 @@
             const hash = CryptoJS.SHA256(publicKey).toString();
             const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
             return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
+        }
+
+        function bytelength(s) {
+            return encodeURI(s).replace(/%../g, "*").length;
         }
 
     </script>
