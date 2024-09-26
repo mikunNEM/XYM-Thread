@@ -34,23 +34,16 @@ function createThread() {
     const message = document.getElementById('thread-message').value;
     const amount = document.getElementById('xym-amount').value;
 
-    if (window.SSS.activeNetworkType !== 104) {
-        Swal.fire(`アクティブアカウントのネットワークを確認してください
-            
-                 ${window.SSS.activeAddress}`);
-        return;
-    }
-
     if (!message || amount < 0.000001) {
         Swal.fire('メッセージと送金するXYMを確認してください');
         return;
     }
 
-    if (bytelength(message) > 1023) {
+    if (byteLengthUTF8(message) > 1023) {
         Swal.fire(`メッセージのサイズが${bytelength(message)}バイトです!!          
                    1023バイト 以下にしてください。`);
         return;
-      }
+    }
 
     // スレッドメッセージをSymbolのトランザクションとして送信
     sendThreadTransaction(message, amount);
@@ -183,8 +176,12 @@ function getRandomImage(publicKey) {
     return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
 }
 
-function bytelength(s) {
+/* function bytelength(s) {
     return encodeURI(s).replace(/%../g, "*").length;
+}*/
+
+function byteLengthUTF8(s) {
+    return new TextEncoder().encode(s).length;
 }
 
 
