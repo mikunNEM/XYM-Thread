@@ -91,7 +91,7 @@ function sendThreadTransaction(message, amount) {
 }
 
 // ふさわしくない投稿リスト
-const badThreadList = ["D4F200B4286611274209C87FF2CC3171B484ECAE6CB6AAEF361D100C082F0D04"]; 
+const badThreadList = [""]; 
 
 
 // ページロード時にスレッドを表示する
