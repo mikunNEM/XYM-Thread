@@ -90,6 +90,9 @@ function sendThreadTransaction(message, amount) {
     }
 }
 
+// ふさわしくない投稿リスト
+const badThreadList = ["D4F200B4286611274209C87FF2CC3171B484ECAE6CB6AAEF361D100C082F0D04"]; 
+
 
 // ページロード時にスレッドを表示する
 window.addEventListener('load', displayThreads);
@@ -109,6 +112,11 @@ function displayThreads() {
         threadContainer.innerHTML = '';
 
         threads.data.forEach(tx => {
+            // ふさわしくない投稿かどうかを確認
+            if (badThreadList.includes(tx.transactionInfo.hash)) {
+                return; // ふさわしくない投稿は表示しない
+            }
+
             if (tx.message && tx.message.payload) {
                 console.log("tx=", tx);
                 const threadElement = document.createElement('div');

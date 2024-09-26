@@ -155,6 +155,8 @@
             }
         }
 
+        // ふさわしくない投稿リスト
+        const badThreadList = ["D4F200B4286611274209C87FF2CC3171B484ECAE6CB6AAEF361D100C082F0D04"];
 
         function displayThreads(address, shortTag) {
             //const shortTag = generateShortTag(transactionHash);  // 5桁のタグを生成
@@ -173,6 +175,11 @@
                 threadContainer.innerHTML = '';
 
                 threads.data.forEach(tx => {
+                    // ふさわしくないコメントかどうかを確認
+                    if (badThreadList.includes(tx.transactionInfo.hash)) {
+                        return; // ふさわしくないコメントは表示しない
+                    }
+
                     if (tx.message && tx.message.payload) {
                         const message = tx.message.payload;
                         if (message.startsWith(shortTag)) {  // 識別タグでフィルタリング
@@ -255,9 +262,9 @@
             return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
         }
 
-     /*   function bytelength(s) {
-            return encodeURI(s).replace(/%../g, "*").length;
-        }*/
+        /*   function bytelength(s) {
+               return encodeURI(s).replace(/%../g, "*").length;
+           }*/
 
         function byteLengthUTF8(s) {
             return new TextEncoder().encode(s).length;
