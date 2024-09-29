@@ -90,92 +90,88 @@ function sendThreadTransaction(message, amount) {
     }
 }
 
-// ふさわしくない投稿リスト
-const badThreadList = [""]; 
-
 
 // ページロード時にスレッドを表示する
 window.addEventListener('load', displayThreads);
 
 function displayThreads() {
     document.getElementById('loading-spinner').style.display = 'block'; // スピナーを表示
-
     const recipientAddress = sym.Address.createFromRawAddress('NB2TFCNBOXNG6FU2JZ7IA3SLYOYZ24BBZAUPAOA');
+    let pageNumber = 1;
+    const threadContainer = document.getElementById('thread-list');
+    threadContainer.innerHTML = ''; // コンテナをクリア
 
-    txRepo.search({
-        group: sym.TransactionGroup.Confirmed,
-        address: recipientAddress,
-        pageSize: 100,
-        order: sym.Order.Desc,
-    }).subscribe(threads => {
-        const threadContainer = document.getElementById('thread-list');
-        threadContainer.innerHTML = '';
-
-        threads.data.forEach(tx => {
-            // ふさわしくない投稿かどうかを確認
-            if (badThreadList.includes(tx.transactionInfo.hash)) {
-                return; // ふさわしくない投稿は表示しない
+    function fetchTransactions(pageNumber) {
+        txRepo.search({
+            group: sym.TransactionGroup.Confirmed,
+            address: recipientAddress,
+            pageSize: 100, // 1ページあたりの最大取得数
+            pageNumber: pageNumber, // 現在のページ
+            order: sym.Order.Desc,
+        }).subscribe(threads => {
+            if (threads.data.length === 0) {
+                document.getElementById('loading-spinner').style.display = 'none'; // データがない場合は終了
+                return;
             }
 
-            if (tx.message && tx.message.payload) {
-                console.log("tx=", tx);
-                const threadElement = document.createElement('div');
-                threadElement.className = 'thread-item';
+            threads.data.forEach(tx => {
+                if (tx.message && tx.message.payload) {
+                    const threadElement = document.createElement('div');
+                    threadElement.className = 'thread-item';
 
-                const timestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
-                const date = new Date(timestamp * 1000);
+                    const timestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
+                    const date = new Date(timestamp * 1000);
 
-                const yyyy = `${date.getFullYear()}`;
-                const MM = `0${date.getMonth() + 1}`.slice(-2);
-                const dd = `0${date.getDate()}`.slice(-2);
-                const HH = `0${date.getHours()}`.slice(-2);
-                const mm = `0${date.getMinutes()}`.slice(-2);
-                const ss = `0${date.getSeconds()}`.slice(-2);
+                    const yyyy = `${date.getFullYear()}`;
+                    const MM = `0${date.getMonth() + 1}`.slice(-2);
+                    const dd = `0${date.getDate()}`.slice(-2);
+                    const HH = `0${date.getHours()}`.slice(-2);
+                    const mm = `0${date.getMinutes()}`.slice(-2);
+                    const ss = `0${date.getSeconds()}`.slice(-2);
 
-                const ymdhms = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
+                    const ymdhms = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
 
-                const xymAmount = tx.mosaics[0].amount.compact() / Math.pow(10, 6);
-                const fontSize = Math.min(10 + xymAmount * 10, 50);
+                    const xymAmount = tx.mosaics[0].amount.compact() / Math.pow(10, 6);
+                    const fontSize = Math.min(10 + xymAmount * 10, 50);
 
-                threadElement.innerHTML = `
-                    <div class="thread-header">
-                        <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar">
-                        <div class="thread-info">
-                            <div class="thread-date">${ymdhms}</div>
-                            <div class="thread-amount">${xymAmount} XYM</div>
+                    threadElement.innerHTML = `
+                        <div class="thread-header">
+                            <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar">
+                            <div class="thread-info">
+                                <div class="thread-date">${ymdhms}</div>
+                                <div class="thread-amount">${xymAmount} XYM</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="thread-message" style="font-size: ${fontSize}px;">
-                        ${tx.message.payload}
-                    </div>
-                    <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
-                `;
+                        <div class="thread-message" style="font-size: ${fontSize}px;">
+                            ${tx.message.payload}
+                        </div>
+                        <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
+                    `;
 
-                threadContainer.appendChild(threadElement);
+                    threadContainer.appendChild(threadElement);
 
-
-                document.querySelectorAll('.open-thread-button').forEach(button => {
-                    button.addEventListener('click', function () {
-
-                        const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
-                        window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
-
-                        console.log(threadElement.querySelector('.open-thread-button'));
-
+                    document.querySelectorAll('.open-thread-button').forEach(button => {
+                        button.addEventListener('click', function () {
+                            const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
+                            window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
+                        });
                     });
-                });
+                }
+            });
 
-
-            }
+            // 次のページのトランザクションを取得
+            pageNumber++;
+            fetchTransactions(pageNumber);
+        }, err => {
+            console.error('トランザクション取得エラー:', err);
+            document.getElementById('loading-spinner').style.display = 'none'; // エラー時もスピナーを非表示
         });
+    }
 
-
-        document.getElementById('loading-spinner').style.display = 'none'; // 読み込み完了後スピナーを非表示
-    }, err => {
-        console.error('トランザクション取得エラー:', err);
-        document.getElementById('loading-spinner').style.display = 'none'; // エラー時もスピナーを非表示
-    });
+    // 最初のページの取得を開始
+    fetchTransactions(pageNumber);
 }
+
 
 
 function getRandomImage(publicKey) {
