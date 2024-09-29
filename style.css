@@ -4,14 +4,14 @@
 }
 
 #header img {
-    width: 95%; /* Adjust the width to fit the container */
-    /* max-width: 1200px; /* Limit the maximum width */
+    width: 100%; /* Adjust the width to fit the container */
+    max-width: 830px; /* Limit the maximum width */
     height: auto;
 }
 
 @media screen and (max-width: 768px) {
     #header img {
-        width: 95%; /* Slightly reduced width for mobile */
+        width: 100%; /* Slightly reduced width for mobile */
     }
 }
 
@@ -307,6 +307,7 @@ h3 {
     width: 50px; /* 画像のサイズを調整 */
     height: 50px;
     border-radius: 50%; /* 画像を丸くする場合 */
+    background-color: white;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
 }
@@ -315,6 +316,26 @@ h3 {
     transform: scale(1.1); /* ホバー時の拡大効果 */
 }
 
+#x-share-button {
+    position: fixed;
+    top: 10px;
+    right: 70px; /* ホームボタンとの距離を調整 */
+    text-decoration: none;
+}
+
+#x-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* 画像を丸くする場合 */
+    background-color: white;
+    object-fit: contain;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+#x-icon:hover {
+    transform: scale(1.1); /* ホバー時の拡大効果 */
+}
 
 
 
