@@ -134,6 +134,8 @@ function displayThreads() {
                     const xymAmount = tx.mosaics[0].amount.compact() / Math.pow(10, 6);
                     const fontSize = Math.min(10 + xymAmount * 10, 50);
 
+                    const linkedMessage = convertURLsToLinks(tx.message.payload);
+
                     threadElement.innerHTML = `
                         <div class="thread-header">
                             <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar">
@@ -143,7 +145,7 @@ function displayThreads() {
                             </div>
                         </div>
                         <div class="thread-message" style="font-size: ${fontSize}px;">
-                            ${tx.message.payload}
+                            ${linkedMessage}
                         </div>
                         <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
                     `;
@@ -172,20 +174,20 @@ function displayThreads() {
     fetchTransactions(pageNumber);
 }
 
-
-
 function getRandomImage(publicKey) {
     const hash = CryptoJS.SHA256(publicKey).toString();
     const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
-    return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
+    return `https://xym-thread.com/avatar/${index}.png`; // ランダムな画像URLを返す
 }
-
-/* function bytelength(s) {
-    return encodeURI(s).replace(/%../g, "*").length;
-}*/
 
 function byteLengthUTF8(s) {
     return new TextEncoder().encode(s).length;
 }
+
+function convertURLsToLinks(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+}
+
 
 

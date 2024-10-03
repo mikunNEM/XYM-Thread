@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>スレッド詳細</title>
     <link rel="stylesheet" href="style.css">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="XYM Thread">
+    <meta name="twitter:description" content="暗号通貨 XYM で投稿するSNS">
+    <meta name="twitter:image" content="https://xym-thread.com/src/xymthread2.png">
 </head>
 
 <body>
@@ -60,6 +64,7 @@
         txRepo.getTransaction(transactionHash, sym.TransactionGroup.Confirmed).subscribe(tx => {
             let message = tx.message.payload;  // トランザクションのメッセージを取得
             const thread_owner = tx.signer.address.address;
+            const threadTimestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
 
             console.log(message);
 
@@ -94,7 +99,7 @@
             });
 
             // ページロード時にスレッドを表示する
-            window.addEventListener('load', displayThreads(thread_owner, shortTag));
+            window.addEventListener('load', displayThreads(thread_owner, shortTag, threadTimestamp));
 
         }, err => {
             console.error('トランザクション取得エラー:', err);
@@ -161,108 +166,103 @@
             }
         }
 
-
-        function displayThreads(address, shortTag) {
-            document.getElementById('loading-spinner').style.display = 'block'; // スピナーを表示
+        function displayThreads(address, shortTag, threadTimestamp) { // threadTimestampを引数に追加
+            document.getElementById('loading-spinner').style.display = 'block';
             const recipientAddress = sym.Address.createFromRawAddress(address);
             let pageNumber = 1;
-            let hasComments = false;  // コメントの有無を確認するフラグ
+            let hasComments = false;
 
             const threadContainer = document.getElementById('thread-list');
-            threadContainer.innerHTML = ''; // コンテナをクリア
+            threadContainer.innerHTML = '';
 
             function fetchTransactions(pageNumber) {
                 txRepo.search({
                     group: sym.TransactionGroup.Confirmed,
                     address: recipientAddress,
-                    pageSize: 100, // 1ページあたりの最大取得数
-                    pageNumber: pageNumber, // 現在のページ
+                    pageSize: 100,
+                    pageNumber: pageNumber,
                     order: sym.Order.Desc,
                 }).subscribe(threads => {
-                    // トランザクションがあるかどうかを確認
                     if (threads.data.length === 0) {
-                        document.getElementById('loading-spinner').style.display = 'none'; // スピナーを非表示
+                        document.getElementById('loading-spinner').style.display = 'none';
                         if (!hasComments) {
-                            // コメントがない場合の表示処理
                             const threadElement = document.createElement('div');
                             threadElement.className = 'thread-item';
                             threadElement.innerHTML = `
-                        <div class="thread-message" style="font-size: 20px;">
-                            コメントはまだありません
-                        </div>
-                    `;
+                    <div class="thread-message" style="font-size: 20px;">
+                        コメントはまだありません
+                    </div>
+                `;
                             threadContainer.appendChild(threadElement);
                         }
-                        return; // データがない場合は終了
+                        return;
                     }
 
                     threads.data.forEach(tx => {
-                        if (tx.message && tx.message.payload) {
+                        const transactionTimestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
+
+                        // スレッドのタイムスタンプよりも新しいトランザクションのみを処理
+                        if (Number(transactionTimestamp) > Number(threadTimestamp) && tx.message && tx.message.payload) {
+                            // console.log("Thread タイムスタンプ =", threadTimestamp);
+                            // console.log("Tx タイムスタンプ =", transactionTimestamp);
                             const message = tx.message.payload;
-                            if (message.startsWith(shortTag)) {  // 識別タグでフィルタリング
-                                hasComments = true;  // コメントがあったことを記録
-                                const commentContent = message.replace(`${shortTag} `, '');  // タグを除去して表示
+                            //console.log("tx_message=", message);
+                            if (message.startsWith(shortTag)) {
+                                hasComments = true;
+                                const commentContent = message.replace(`${shortTag} `, '');
+                                const linkedMessage = convertURLsToLinks(commentContent);
                                 const threadElement = document.createElement('div');
                                 threadElement.className = 'thread-item';
 
-                                const timestamp = epochAdjustment + (parseInt(tx.transactionInfo.timestamp.toHex(), 16) / 1000);
-                                const date = new Date(timestamp * 1000);
-
-                                const yyyy = `${date.getFullYear()}`;
-                                const MM = `0${date.getMonth() + 1}`.slice(-2);
-                                const dd = `0${date.getDate()}`.slice(-2);
-                                const HH = `0${date.getHours()}`.slice(-2);
-                                const mm = `0${date.getMinutes()}`.slice(-2);
-                                const ss = `0${date.getSeconds()}`.slice(-2);
-
-                                const ymdhms = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
-
+                                const date = new Date(transactionTimestamp * 1000);
+                                const ymdhms = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
                                 const xymAmount = tx.mosaics[0].amount.compact() / Math.pow(10, 6);
                                 const fontSize = Math.min(10 + xymAmount * 10, 50);
 
                                 threadElement.innerHTML = `
-                            <div class="thread-header">
-                                <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar">
-                                <div class="thread-info">
-                                    <div class="thread-date">${ymdhms}</div>
-                                    <div class="thread-amount">${xymAmount} XYM</div>
-                                </div>
+                        <div class="thread-header">
+                            <img src="${getRandomImage(tx.signer.publicKey)}" alt="Avatar" class="avatar">
+                            <div class="thread-info">
+                                <div class="thread-date">${ymdhms}</div>
+                                <div class="thread-amount">${xymAmount} XYM</div>
                             </div>
-                            <div class="thread-message" style="font-size: ${fontSize}px;">
-                                ${commentContent}
-                            </div>
-                            <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
-                        `;
+                        </div>
+                        <div class="thread-message" style="font-size: ${fontSize}px;">
+                            ${linkedMessage}
+                        </div>
+                        <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
+                    `;
 
                                 threadContainer.appendChild(threadElement);
 
                                 document.querySelectorAll('.open-thread-button').forEach(button => {
                                     button.addEventListener('click', function () {
-                                        const transactionHash = button.getAttribute('data-hash'); // トランザクションハッシュを取得
-                                        window.location.href = `thread.html?id=${transactionHash}`;  // 新しいページに遷移
+                                        const transactionHash = button.getAttribute('data-hash');
+                                        window.location.href = `thread.html?id=${transactionHash}`;
                                     });
                                 });
                             }
+                        } else {
+                            document.getElementById('loading-spinner').style.display = 'none'; // スピナー非表示
                         }
                     });
 
-                    // 次のページのトランザクションを取得
                     pageNumber++;
                     fetchTransactions(pageNumber);
                 }, err => {
                     console.error('トランザクション取得エラー:', err);
-                    document.getElementById('loading-spinner').style.display = 'none'; // エラー時もスピナーを非表示
+                    document.getElementById('loading-spinner').style.display = 'none';
                 });
             }
 
-            // 最初のページの取得を開始
             fetchTransactions(pageNumber);
         }
+
 
         function getRandomImage(publicKey) {
             const hash = CryptoJS.SHA256(publicKey).toString();
             const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
-            return `https://ventus-wallet.net/thread/avatar/${index}.png`; // ランダムな画像URLを返す
+            return `https://xym-thread.com/avatar/${index}.png`; // ランダムな画像URLを返す
         }
 
         document.getElementById('x-share-button').addEventListener('click', function () {
@@ -271,13 +271,13 @@
             window.open(x_Url);
         });
 
-
-        /*   function bytelength(s) {
-               return encodeURI(s).replace(/%../g, "*").length;
-           }*/
-
         function byteLengthUTF8(s) {
             return new TextEncoder().encode(s).length;
+        }
+
+        function convertURLsToLinks(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
         }
 
     </script>
