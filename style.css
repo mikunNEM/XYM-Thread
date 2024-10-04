@@ -132,11 +132,14 @@ h2 {
 
 h3 {
    /* font-family: 'Arial', sans-serif;*/
-    font-size: 24px;
+    font-size: 20px;
     color: blue;
     text-align: center;
     margin-bottom: 20px;
     font-family: 'Poppins', sans-serif; /* モダンフォント */
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
 }
 
 /* Center thread list */
@@ -200,12 +203,37 @@ h3 {
 }
 
 .thread-message {
+    /*white-space: pre-wrap; /* 改行を反映 */
+    word-wrap: break-word; /* 長い単語やURLを折り返し */
+    word-break: break-all; /* 単語の途中でも折り返し */
+    overflow-wrap: break-word; /* 古いブラウザ対応 */
     margin-top: 20px;
     font-size: 24px;
     text-align: center;
     color:blue;
     /*font-family: 'Arial', sans-serif;*/
     font-family: 'Poppins', sans-serif; /* モダンフォント */
+}
+
+.thread-message a {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+#thread-container {
+    max-width: 800px; /* 好みの最大幅に調整 */
+    margin: 0 auto; /* 中央揃えにする */
+    padding: 20px; /* 内側のスペースを確保 */
+    border: 2px solid #ccc; /* 枠線を追加 */
+    border-radius: 10px; /* 枠線の角を丸くする */
+    background-color: #f9f9f9; /* 背景色を設定 */
+}
+
+.thread-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .open-thread-button {

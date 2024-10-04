@@ -90,6 +90,10 @@ function sendThreadTransaction(message, amount) {
     }
 }
 
+// ふさわしくない投稿リスト
+const badThreadList = ['',
+                       '', 
+                       '']; // ふさわしくない投稿のトランザクションハッシュを追加
 
 // ページロード時にスレッドを表示する
 window.addEventListener('load', displayThreads);
@@ -115,7 +119,12 @@ function displayThreads() {
             }
 
             threads.data.forEach(tx => {
+                // ふさわしくない投稿かどうかを確認
+                if (badThreadList.includes(tx.transactionInfo.hash)) {
+                    return; // ふさわしくない投稿は表示しない
+                }
                 if (tx.message && tx.message.payload) {
+                    console.log("tx.hash=", tx.transactionInfo.hash);
                     const threadElement = document.createElement('div');
                     threadElement.className = 'thread-item';
 
@@ -147,6 +156,7 @@ function displayThreads() {
                         <div class="thread-message" style="font-size: ${fontSize}px;">
                             ${linkedMessage}
                         </div>
+                        <br>
                         <button class="open-thread-button" data-hash="${tx.transactionInfo.hash}">スレッドを開く</button>
                     `;
 
@@ -186,7 +196,7 @@ function byteLengthUTF8(s) {
 
 function convertURLsToLinks(text) {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+    return text.replace(urlRegex, '<br><br><a href="$1" target="_blank">➡️詳細はこちらから</a>');
 }
 
 
