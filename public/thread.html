@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>XYM Thread (ジムスレッド) | SYMBOLブロックチェーンに投稿するSNS</title>
+
+    <meta name="description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
+    <meta name="keywords" content="XYM, Symbol, ブロックチェーン, 分散型SNS, 暗号通貨, Web3, NFT, XYM Thread">
+
+    <!-- OGP設定 -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="XYM Thread (ジムスレッド)">
+    <meta property="og:description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
+    <meta property="og:url" content="https://xym-thread.com/thread.html">
+    <meta property="og:image" content="https://xym-thread.com/src/xymthread_small.png">
+
+    <!-- Twitterカード -->
+    <meta name="twitter:card" content="summary"> <!-- 小さい画像用 -->
+    <meta name="twitter:title" content="XYM Thread (ジムスレッド)">
+    <meta name="twitter:description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
+    <meta name="twitter:image" content="https://xym-thread.com/src/xymthread_small.png">
+
+    <!-- JSON-LD構造化データ -->
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "XYM Thread (ジムスレッド)",
+          "description": "SYMBOLブロックチェーンを活用したスレッドです",
+          "url": "https://xym-thread.com/thread.html",
+          "image": "https://xym-thread.com/src/xymthread_small.png",
+          "publisher": {
+            "@type": "Organization",
+            "name": "XYM Thread (ジムスレッド)",
+            "url": "https://xym-thread.com",
+            "logo": "https://xym-thread.com/src/xymthread_small.png"
+          }
+        }
+    </script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+    <div id="loading-spinner" style="display:none;">
+        <div class="spinner"></div>
+    </div>
+
+    <a href="index.html" id="home-button">
+        <img src="src/home.png" alt="ホーム" id="home-icon">
+    </a>
+
+    <a id="x-share-button">
+        <img src="src/x.png" alt="x" id="x-icon">
+    </a>
+
+    <div id="thread-container"></div>
+
+    <div id="comment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>コメントを追加</h2>
+            <div id="thread_address"></div>
+            <textarea id="comment-message" placeholder="コメントを入力"></textarea>
+            <input type="number" id="xym-amount" placeholder="送金するXYMを入力" step="0.000001" min="0">
+            <button id="submit-comment" class="create-thread">送信</button>
+        </div>
+    </div>
+    <button id="comment-button" class="reply-comment">コメントする</button>
+
+    <div id="thread-list"></div>
+
+    <!--    <script type="text/javascript" src="https://xembook.github.io/nem2-browserify/symbol-sdk-pack-2.0.5.js"></script>  -->
+    <!-- <script type="text/javascript" src="https://bundle.run/buffer@6.0.3"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        let scopedMetadataKey;
+        let sdkCore;
+        let sdkSymbol;
+        let NODE;
+        let epochAdjustment;
+        let facade;
+        let PublicAccount;
+        let pubkey;
+
+        // 非表示リスト
+        const badThreadList = ['88A695491C7BDFCAF9857E02FB82A91C392C927F837B3259877E667BE21BEB96',
+            '',
+            ''];
+
+        document.getElementById('loading-spinner').style.display = 'block';
+
+
+        async function getAvailableNode() {
+            const fixedNode = 'https://symbol-mikun.net:3001'; // 固定ノード
+            const NodesUrl = 'https://symbol.services/nodes?filter=suggested&limit=1000&ssl=true';
+
+            // 🔹 まずノードリストから探す
+            try {
+                const response = await fetch(NodesUrl);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    // 🔹 `hostDetail.country === "Japan"` のノードをフィルタリング 🇯🇵
+                    let availableNodes = data.filter(node => node.hostDetail?.country === "Japan");
+
+                    if (availableNodes.length === 0) {
+                        console.warn("⚠️ 日本のノードが見つからなかったため、全ノードから選択します");
+                        availableNodes = data; // 日本のノードがなければ全ノードを使用
+                    }
+
+                    // 🔹 ブロック高が高い順にソート（`chainHeight` が一番大きいノードを優先）
+                    availableNodes.sort((a, b) => b.apiStatus.chainHeight - a.apiStatus.chainHeight);
+
+                    // 🔹 最もブロック高が高いノードを選択
+                    const selectedNode = availableNodes[0].apiStatus.restGatewayUrl;
+                    console.log("🟢 最新ブロック高のノードを使用:", selectedNode, "（ブロック高:", availableNodes[0].apiStatus.chainHeight, "）");
+                    return selectedNode;
+                } else {
+                    console.warn("⚠️ バックアップノードが見つからなかった。固定ノードを試します。");
+                }
+            } catch (error) {
+                console.error("❌ ノードリストの取得に失敗:", error);
+            }
+
+            // 🔹 最後の手段として固定ノードを試す
+            try {
+                const response = await fetch(`${fixedNode}/node/health`);
+                const healthData = await response.json();
+                console.log("healthData========", healthData);
+
+                if (healthData && healthData.status.db && healthData.status.apiNode === 'up') {
+                    console.log("✅ 固定ノードを使用:", fixedNode);
+                    return fixedNode;
+                }
+            } catch (error) {
+                console.error("❌ 固定ノードもダウンしているため、利用可能なノードが見つかりません。");
+            }
+
+            return null; // どのノードも使えなかった場合
+        }
+
+        async function loadSDK() {
+
+            NODE = await getAvailableNode();
+            if (!NODE) {
+                console.error("🚨 使用可能なノードが見つかりませんでした。");
+                return;
+            }
+
+            const SDK_VERSION = "3.2.3";
+            const sdk = await import(`https://unpkg.com/symbol-sdk@${SDK_VERSION}/dist/bundle.web.js`);
+            sdkCore = sdk.core;
+            sdkSymbol = sdk.symbol;
+
+            //   NODE = 'https://symbol-mikun.net:3001'; // ノードURL
+
+            // ネットワークプロパティを取得
+            const networkProperties = await fetch(
+                new URL('/network/properties', NODE),
+                {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            ).then((res) => res.json());
+
+            const e = networkProperties.network.epochAdjustment;
+            epochAdjustment = Number(e.substring(0, e.length - 1));
+            const identifier = networkProperties.network.identifier;
+            console.log("identifier=", identifier);
+
+            // facadeを作成
+            facade = new sdkSymbol.SymbolFacade(identifier);
+
+            scopedMetadataKey = sdkSymbol.metadataGenerateKey("social_meta_data");  // メタデータキー生成
+
+            getTransactionDetails(transactionHash); // トップにスレッドのメッセージを表示
+
+        }
+
+        loadSDK();  // 非同期関数を呼び出す
+
+        // URLからスレッドID（トランザクションハッシュ）を取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const transactionHash = urlParams.get('id');
+        const shortTag = `#${transactionHash.substring(0, 5)}`;
+
+        // ページロード時にスレッドを表示する
+
+        // トランザクションの詳細を取得してメッセージを表示
+        async function getTransactionDetails(transactionHash) {
+            try {
+                // ふさわしくない投稿かどうかを確認
+                if (badThreadList.includes(transactionHash)) {
+                    document.getElementById('thread-container').innerHTML = `<h2>このメッセージは表示出来ません</h2>`;
+                    return; // ふさわしくない投稿は表示しない
+                }
+
+                // トランザクションのエンドポイントにGETリクエストを送信
+                const response = await fetch(`${NODE}/transactions/confirmed/${transactionHash}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // レスポンスをJSONとしてパース
+                if (response.ok) {
+                    const tx = await response.json();
+                    console.log("tx=", tx);
+
+                    const threadOwner = tx.transaction.signerPublicKey;
+                    const threadTimestamp = epochAdjustment + (tx.meta.timestamp / 1000);
+
+                    PublicAccount = facade.createPublicAccount(new sdkCore.PublicKey(threadOwner));
+
+                    document.getElementById('thread_address').innerHTML = `<span style="font-size: 13px;">スレッド主のアカウントへXYMを送金します。<br><p style="color:blue;">送信先<br>${PublicAccount.address.toString()}</p></span>`; // コメントモーダルにアドレス表示
+
+                    // メッセージのデコードとクリーンアップ
+                    let message = cleanMessage(tx.transaction.message); // メッセージ先頭のヌル文字を削除
+
+                    let thread_title;
+                    if (message.startsWith("#")) {
+                        // #タグがある場合、7文字目以降を取得
+                        thread_title = message.slice(7).trim();
+                    } else {
+                        // #タグがない場合、そのまま使用
+                        thread_title = message.trim();
+                    }
+
+                    const thread_title2 = convertURLsToLinks(thread_title); // URLがある場合のリンク適用
+
+                    const threadElement = document.createElement('div');
+                    threadElement.setAttribute('data-hash', transactionHash);
+
+                    const date = new Date(threadTimestamp * 1000);
+                    const ymdhms = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+
+                    threadElement.classList.add("top-thread");
+
+                    // トップスレッドの内容を挿入
+                    threadElement.innerHTML = `
+                        <div class="thread-info">
+                          <div class="thread-date">${ymdhms}</div>
+                        </div>
+                        <br>
+                         <div style="text-align: center">
+                          <div class="avatar-container_2" style="position:relative;">
+                            <div class="avatar"></div>
+                            <span class="smd-name"></span>
+                                <div class="address-tooltip" style="display:none; position:absolute; top:80px; left:50%; transform:translate(-50%, -50%); background-color:#333; color:#fff; padding:5px; border-radius:5px; white-space:nowrap; font-size:13px; z-index:10;">
+                                        ${PublicAccount.address.toString()}
+                                </div>
+                            </div>
+                          </div>
+                         <div class="border-line"></div>
+                         <br>
+                         <h3>${thread_title2}</h3>
+
+                         <div class="thread-footer"></div>
+                         `;
+
+                    // 追加する場所にthreadElementを挿入
+                    document.getElementById('thread-container').appendChild(threadElement);
+
+                    fetchMetadataAndSetIcon(tx.transaction.signerPublicKey, threadElement);
+
+                    addHoverEffect();  // リスナーを再設定
+
+                    // コメント数とXYM合計を表示
+                    fetchThreadCommentsV3(transactionHash, threadOwner, threadTimestamp);
+
+
+                    document.getElementById('submit-comment').addEventListener('click', function () {
+                        const message = document.getElementById('comment-message').value;
+                        const amount = document.getElementById('xym-amount').value;
+
+                        if (!message || amount < 0.000001) {
+                            Swal.fire('コメントと送金するXYMを確認してください');
+                            return;
+                        }
+
+                        if (byteLengthUTF8(message) > 1023) {
+                            Swal.fire(`メッセージのサイズが${bytelength(message)}バイトです!!          
+                              1023バイト 以下にしてください。`);
+                            return;
+                        }
+
+                        // コメントをSymbolブロックチェーンに送信する処理をここに追加
+                        sendCommentTransaction(threadOwner, message, amount, shortTag);
+
+                        // モーダルを閉じる
+                        document.getElementById('comment-modal').style.display = 'none';
+                    });
+
+                    window.addEventListener('load', displayThreads(threadOwner, shortTag, threadTimestamp));
+
+                } else {
+                    console.error('トランザクションの取得に失敗しました:', response.status, response.statusText);
+                }
+
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+            }
+        }
+
+
+        // メタデータを取得し、特定のキーが存在する場合にアイコンを設定
+        function fetchMetadataAndSetIcon(publicKey, threadElement) {
+
+            PublicAccount = facade.createPublicAccount(new sdkCore.PublicKey(publicKey));  // アカウントのアドレス
+            accountAddress = PublicAccount.address;
+
+            // メタデータの取得 (V3)
+            async function fetchMetadataV3(address, scopedMetadataKey, threadElement, publicKey) {
+                try {
+                    // クエリパラメータの設定
+                    const params = new URLSearchParams({
+                        targetAddress: address.toString(),  // アカウントアドレス
+                        scopedMetadataKey: scopedMetadataKey.toString(16).toUpperCase(),  // スコープメタデータキー
+                        metadataType: 0,  // アカウントメタデータ (0)
+                        "pageSize": 100,           // 必要に応じて調整
+                        order: "desc"            // 降順で取得
+                    });
+
+                    // メタデータエンドポイントに対してGETリクエストを送信
+                    const response = await fetch(new URL(`/metadata?${params.toString()}`, NODE), {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const metadataEntries = await response.json();
+                    const metadataArray = metadataEntries.data;
+
+                    // メタデータエントリの中から対象のスコープキーを検索
+                    if (metadataArray.length > 0) {
+
+                        metadataArray.forEach(entry => {
+
+                            if (entry.metadataEntry.scopedMetadataKey === scopedMetadataKey.toString(16).toUpperCase()) {
+                                // メタデータが存在する場合、JSONデータを解析
+
+                                const rawValue = entry.metadataEntry.value;
+
+                                // 16進数文字列からバイト配列に変換
+                                const byteArray = hexToBytes(rawValue);
+
+                                // バイト配列をデコード
+                                const decodedValue = new TextDecoder().decode(byteArray);
+
+                                // エスケープ解除とJSONパース
+                                // const decodedValue = new TextDecoder().decode(Uint8Array.from(rawValue));
+                                const cleanedValue = decodedValue.replace(/\\\"/g, '"');  // バックスラッシュでエスケープされたダブルクォーテーションを解除
+                                const metadataJson = JSON.parse(cleanedValue);
+
+                                // アイコン画像とリンクを設定
+                                const imageUrl = metadataJson.imageUrl;
+                                const url = metadataJson.url;
+                                const name = metadataJson.name ? metadataJson.name.trim() : ""; // 名前がない場合は "" 空文字で
+
+                                if (imageUrl && url) {
+                                    // アバター画像とリンクを設定
+                                    threadElement.querySelector('.avatar').outerHTML = `
+                    <a href="${url}" target="_blank">
+                        <img src="${imageUrl}" alt="Avatar" class="avatar" style="cursor:pointer; width:50px; height:50px; border-radius:50%;">                        
+                    </a>
+                    <span class="smd-name">${name}</span>
+                `;
+                                }
+                            } else {
+                                // メタデータが存在しない場合、ランダムな画像を設定
+                                threadElement.querySelector('.avatar').outerHTML = `
+                <img src="${getRandomImage(publicKey)}" alt="Avatar" class="avatar" style="cursor:pointer; width:50px; height:50px; border-radius:50%;">
+            `;
+                            }
+                        })
+                    } else {
+                        // メタデータが存在しない場合、ランダムな画像を設定
+                        threadElement.querySelector('.avatar').outerHTML = `
+            <img src="${getRandomImage(publicKey)}" alt="Avatar" class="avatar" style="cursor:pointer; width:50px; height:50px; border-radius:50%;">
+        `;
+
+                    }
+
+                } catch (err) {
+                    console.error('メタデータの取得エラー:', err);
+                }
+            }
+
+            // メタデータ取得を実行
+            fetchMetadataV3(accountAddress, scopedMetadataKey, threadElement, publicKey);
+
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // モーダルを開く
+            document.getElementById('comment-button').addEventListener('click', function () {
+                document.getElementById('comment-modal').style.display = 'flex';
+            });
+
+            // モーダルを閉じる
+            document.querySelector('.close').addEventListener('click', function () {
+                document.getElementById('comment-modal').style.display = 'none';
+            });
+
+            // モーダル外をクリックした場合も閉じる
+            window.addEventListener('click', function (event) {
+                if (event.target == document.getElementById('comment-modal')) {
+                    document.getElementById('comment-modal').style.display = 'none';
+                }
+            });
+        });
+
+        function sendCommentTransaction(threadOwner, message, amount, shortTag) {
+
+            const taggedMessage = `${shortTag} ${message}`;  // タグをメッセージの先頭に追加
+
+            console.log("Message=", taggedMessage);
+            PublicAccount = facade.createPublicAccount(new sdkCore.PublicKey(threadOwner));
+            const recipientAddress = PublicAccount.address;
+            const plainMessage = new Uint8Array([0x00, ...new TextEncoder().encode(taggedMessage)]);
+
+            // トランザクション Descriptor 設定
+            descriptor = new sdkSymbol.descriptors.TransferTransactionV1Descriptor(  // Txタイプ:転送Tx
+                recipientAddress,      // 受取アドレス
+                [
+                    //// XYM送金
+                    new sdkSymbol.descriptors.UnresolvedMosaicDescriptor(
+                        new sdkSymbol.models.UnresolvedMosaicId(0x6BED913FA20223F8n),
+                        new sdkSymbol.models.Amount(BigInt(amount * Math.pow(10, 6)))
+                    )
+                ],
+                plainMessage       // メッセージ
+            );
+
+            if (window.innerWidth >= 768) {   // モバイルではない場合、SSSから公開鍵を取得
+                if (window.SSS.activePublicKey) {
+                    pubkey = window.SSS.activePublicKey;
+                } else {
+                    Swal.fire({
+                        title: 'Error!!',
+                        text: 'SSSとリンクしていません！',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } else {  // モバイルの場合
+                pubkey = new sdkCore.PublicKey('0000000000000000000000000000000000000000000000000000000000000000'); // 公開鍵は aLice で設定する
+            }
+
+            tx = facade.createTransactionFromTypedDescriptor(
+                descriptor,       // トランザクション Descriptor 設定
+                pubkey,  // 署名者公開鍵
+                100,              // 手数料乗数
+                60 * 60 * 2       // Deadline:有効期限(秒単位)
+            );
+
+            if (window.innerWidth <= 768) {  // ウィンドウサイズで aLice / SSS を切り替える。
+                const transactionPayload = sdkCore.utils.uint8ToHex(tx.serialize());  // V3
+                const aliceUrl = `alice://sign?data=${transactionPayload}&type=request_sign_transaction&node=${utf8ToHex(NODE)}&method=announce`; //&deadline=3600&callback=${callback}`;
+                window.location.href = aliceUrl;
+            } else {
+                const payload = sdkCore.utils.uint8ToHex(tx.serialize());
+
+                window.SSS.setTransactionByPayload(payload);
+                window.SSS.requestSign().then(signedPayload => {   // SSSを用いた署名をユーザーに要求
+                    console.log('signedPayload', signedPayload);
+                    jsonPayload = `{"payload": "${signedPayload.payload}"}`
+                    // SSSで署名されたトランザクションの送信
+                    fetch(`${NODE}/transactions`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: jsonPayload
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('トランザクションが送信されました！');
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'アナウンスが送信されました！',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                });
+                            } else {
+                                console.error('トランザクションの送信に失敗しました:', response);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('エラー:', error);
+                        });
+                }).catch((error) => {
+                    console.error('署名のエラー:', error);
+                })
+            }
+        }
+
+
+        function displayThreads(publicKey, shortTag, threadTimestamp) { // threadTimestampを引数に追加
+            document.getElementById('loading-spinner').style.display = 'block';
+            PublicAccount = facade.createPublicAccount(new sdkCore.PublicKey(publicKey));
+            const recipientAddress = PublicAccount.address;
+            let pageNumber = 1;
+            let hasComments = false;
+
+            const threadContainer = document.getElementById('thread-list');
+            threadContainer.innerHTML = '';
+
+            async function fetchTransactions(pageNumber) {
+                const params = new URLSearchParams({
+                    "address": recipientAddress.toString(),  // 対象のアドレスを指定
+                    "embedded": true,
+                    "pageSize": 100, // 1ページあたりの最大取得数
+                    "pageNumber": pageNumber, // 現在のページ
+                    "order": "desc" // 降順で取得
+                });
+                const result = await fetch(
+                    new URL('/transactions/confirmed?' + params.toString(), NODE),
+                    {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    }
+                ).then((res) => res.json())
+                    .catch(err => {
+                        console.error('トランザクション取得エラー:', err);
+                        document.getElementById('loading-spinner').style.display = 'none'; // エラー時もスピナーを非表示
+                    });
+
+                if (result && result.data.length === 0) {
+                    document.getElementById('loading-spinner').style.display = 'none'; // データがない場合は終了
+                    if (!hasComments) {
+                        const threadElement = document.createElement('div');
+                        threadElement.className = 'thread-item';
+                        threadElement.innerHTML = `
+                            <div class="thread-message" style="font-size: 20px;">
+                                コメントはまだありません
+                            </div>
+                        `;
+                        threadContainer.appendChild(threadElement);
+                    }
+                    return;
+                }
+
+                const txes = result.data;
+
+                txes.forEach(tx => {
+                    // ふさわしくない投稿かどうかを確認
+                    if (badThreadList.includes(tx.meta.hash)) {
+                        return; // ふさわしくない投稿は表示しない
+                    }
+
+                    const transactionTimestamp = epochAdjustment + (tx.meta.timestamp / 1000);
+                    // スレッドのタイムスタンプよりも新しいトランザクションのみを処理
+                    if (Number(transactionTimestamp) > Number(threadTimestamp) && tx.transaction.message) {
+                        const threadHash2 = tx.meta.hash;
+                        const threadOwner2 = tx.transaction.signerPublicKey;
+                        const threadTimestamp2 = epochAdjustment + (tx.meta.timestamp / 1000);
+
+                        PublicAccount = facade.createPublicAccount(new sdkCore.PublicKey(threadOwner2));
+
+                        const message = hexToUtf8(tx.transaction.message);
+
+                        if (message.substring(1, 7) === shortTag) {
+                            console.count("カウント");
+                            hasComments = true;
+                            const commentContent = message.replace(`${shortTag} `, '');
+                            const linkedMessage = convertURLsToLinks(commentContent);
+                            const threadElement = document.createElement('div');
+                            threadElement.className = 'thread-item';
+                            threadElement.setAttribute('data-hash', threadHash2);
+
+                            const date = new Date(transactionTimestamp * 1000);
+                            const ymdhms = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+                            const xymAmount = tx.transaction.mosaics[0].amount / Math.pow(10, 6);
+                            const fontSize = Math.min(10 + xymAmount * 10, 40);
+
+                            threadElement.innerHTML = `
+                                                                    <div class="thread-header">
+                                                                        <div class="avatar-container_2" style="position:relative;">
+                                                                        <div class="avatar"></div>
+                                                                            <div class="address-tooltip" style="display:none; position:absolute; top:50%; left:0%; transform:translate(0%, 100%); background-color:#333; color:#fff; padding:5px; border-radius:5px; white-space:nowrap; font-size:12px; z-index:10;">
+                                                                             ${PublicAccount.address.toString()}
+                                                                            </div>
+                                                                        </div>
+                
+                                                                        <div class="thread-info">
+                                                                            <div class="thread-date">${ymdhms}</div>
+                                                                            <div class="thread-amount"><img src="src/fontsize2.png" alt="fontsize" class="fontsize-icon"> ${xymAmount} XYM</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="border-line"></div>
+                                                                    <div class="thread-message" style="font-size: ${fontSize}px;">
+                                                                        ${linkedMessage}
+                                                                    </div>
+                                                                    <br>
+                                                                    <!-- <button class="open-thread-button" data-hash="${tx.meta.hash}">スレッドを開く</button> -->
+                                                                    <div class="thread-footer">
+                                                                          <a class="x-share-button_th" data-url="${window.location.origin}/thread.html?id=${tx.meta.hash}">
+                                                                            <img src="src/x.png" alt="x" class="x-icon_th">
+                                                                          </a>
+                                                                          <button class="open-thread-icon-button" data-hash="${tx.meta.hash}">
+                                                                            <img src="src/thread.png" alt="open" class="open-icon">
+                                                                          </button>
+                                                                    </div>
+                                                                `;
+
+                            threadContainer.appendChild(threadElement);
+
+                            fetchMetadataAndSetIcon(tx.transaction.signerPublicKey, threadElement);
+
+                            addHoverEffect();  // リスナーを再設定
+
+                            // イベントリスナーを一度だけ登録
+                            document.querySelectorAll('.open-thread-icon-button').forEach(button => {
+                                button.removeEventListener('click', openThread);
+                                button.addEventListener('click', openThread);
+                            });
+
+                            document.querySelectorAll('.x-share-button_th').forEach(button => {
+                                button.removeEventListener('click', handleShareClick);
+                                button.addEventListener('click', handleShareClick);
+                            });
+
+                            //  コメント数の取得
+                            fetchThreadCommentsV3(threadHash2, threadOwner2, threadTimestamp2);
+                        }
+
+
+                    } else {
+                        document.getElementById('loading-spinner').style.display = 'none'; // スピナー非表示
+                        return;
+                    }
+                });
+
+                pageNumber++;
+                fetchTransactions(pageNumber);
+
+            }
+
+            fetchTransactions(pageNumber);
+
+        }
+
+
+        function getRandomImage(publicKey) {   // アイコン画像を設定
+            const hash = CryptoJS.SHA256(publicKey).toString();
+            const index = parseInt(hash.slice(0, 8), 16) % 16 + 1; // ランダムに1-16の範囲の数値を生成
+            return `https://xym-thread.com/avatar/${index}.png`; // ランダムな画像URLを返す
+        }
+
+        document.getElementById('x-share-button').addEventListener('click', function () {   // Xへのシェアボタンの動作設定
+            const pageUrl = window.location.href;
+            const message = `#Symbol #XYM_Thread ${pageUrl}`;  // タグを含めたメッセージ
+            const x_Url = `https://x.com/intent/post?text=${encodeURIComponent(message)}`;
+            window.open(x_Url);
+        });
+
+        function byteLengthUTF8(s) {
+            return new TextEncoder().encode(s).length;
+        }
+        /*
+                function convertURLsToLinks(text) {   // メッセージにリンクがある場合に　詳細はこちらから と表示
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    return text.replace(urlRegex, '<br><br><a href="$1" target="_blank">➡️詳細はこちらから</a>');
+                }
+        */
+        function convertURLsToLinks(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text
+                .replace(/\n/g, '<br>') // 改行を <br> に変換
+                .replace(urlRegex, '<br><br><a href="$1" target="_blank">➡️詳細はこちらから</a>');
+        }
+
+
+        async function fetchThreadCommentsV3(threadHash, threadOwner, threadTimestamp) {
+            let commentCount = 0;
+            let totalXYM = 0;
+            let pageNumber = 1;
+
+            PublicAccount = facade.createPublicAccount(new sdkCore.PublicKey(threadOwner));
+            const recipientAddress = PublicAccount.address;
+
+            // 次のページのデータを取得する関数
+            async function fetchNextPage(pageNumber) {
+                const params = new URLSearchParams({
+                    "address": recipientAddress.toString(),
+                    "pageSize": 100,
+                    "pageNumber": pageNumber,
+                    "order": "desc"
+                });
+
+                // トランザクションを取得するエンドポイントへのリクエスト
+                const response = await fetch(
+                    new URL(`/transactions/confirmed?${params.toString()}`, NODE), {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const transactions = await response.json();
+
+                if (transactions.data.length === 0) {
+                    updateCommentCountDisplay(threadHash, commentCount, totalXYM); // コメント数と合計XYMの表示更新
+                    return;
+                }
+
+                let shouldContinue = true; // 処理を続けるかどうかを判断するフラグ
+                // let decodedMessage;
+                for (const tx of transactions.data) {
+                    const transactionTimestamp = epochAdjustment + (tx.meta.timestamp / 1000);
+
+                    // スレッドのタイムスタンプ以前のトランザクションは処理しない
+                    if (Number(transactionTimestamp) <= Number(threadTimestamp)) {
+                        shouldContinue = false; // タイムスタンプに到達したら処理を終了
+                        break;
+                    }
+
+                    //console.log("tx=",tx);
+                    // コメントのカウント処理
+                    if (tx.transaction.message) {
+                        const decodedMessage = hexToUtf8(tx.transaction.message);
+                        if (decodedMessage.substring(2, 7) === threadHash.substring(0, 5)) { // デコードした先頭に空白の文字が入っているので substring(2, 7) としている
+                            commentCount++;
+                            // 送金されたXYMの量を加算
+                            const mosaicAmount = tx.transaction.mosaics[0].amount;
+                            const xymAmount = parseInt(mosaicAmount) / Math.pow(10, 6); // XYM量を計算
+                            totalXYM += xymAmount;
+                        }
+                    }
+
+                }
+
+                // 次のページを取得するかどうかを判断
+                if (shouldContinue) {
+                    pageNumber++;
+                    await fetchNextPage(pageNumber); // 次のページを取得
+                } else {
+                    updateCommentCountDisplay(threadHash, commentCount, totalXYM); // コメント数と合計XYMを更新
+                }
+            }
+
+            // 最初のページの取得を開始
+            await fetchNextPage(pageNumber);
+        }
+
+
+        // updateCommentCountDisplay 関数
+        function updateCommentCountDisplay(threadHash, commentCount, totalXYM) {
+            const threadElement = document.querySelector(`[data-hash="${threadHash}"]`);
+            if (threadElement) {
+                const threadFooter = threadElement.querySelector('.thread-footer') || document.createElement('div');
+                threadFooter.className = 'thread-footer';
+
+                const infoContainer = document.createElement('div');
+                infoContainer.className = 'info-display';
+                infoContainer.innerHTML = `　　
+            <img src="src/xym.png" alt="XYMアイコン" class="xym-icon">
+            <span class="total-xym">${totalXYM.toLocaleString()}</span>
+            <img src="src/comment.png" alt="コメントアイコン" class="comment-icon">
+            <span class="comment-count">${commentCount}</span>
+        `;
+
+                if (!threadFooter.querySelector('.info-display')) {
+                    threadFooter.appendChild(infoContainer);
+                }
+
+                // トップスレッドの場合は `open-thread-icon-button` を追加しない
+                if (threadHash === transactionHash) {
+                    // トップスレッドにはシェアボタンが既にあるため、新しいボタンは追加しない
+                } else {
+                    const openThreadButton = document.createElement('button');
+                    openThreadButton.className = 'open-thread-icon-button';
+                    openThreadButton.setAttribute('data-hash', threadHash);
+                    openThreadButton.innerHTML = `<img src="src/thread.png" alt="open" class="open-icon">`;
+
+                    if (!threadFooter.querySelector('.open-thread-icon-button')) {
+                        threadFooter.appendChild(openThreadButton);
+                    }
+                }
+
+                if (!threadElement.querySelector('.thread-footer')) {
+                    threadElement.appendChild(threadFooter);
+                }
+            }
+        }
+
+        // 動的に生成された要素に対してイベントリスナーを追加する
+        function addHoverEffect() {
+
+            if (window.innerWidth >= 768) {
+                // デスクトップ環境
+                document.querySelectorAll('.avatar-container_2').forEach(container => {
+                    const tooltip = container.querySelector('.address-tooltip');
+
+                    // マウスオーバーでアドレスを表示
+                    container.addEventListener('mouseenter', () => {
+                        tooltip.style.display = 'block';
+                    });
+
+                    // マウスが離れたらアドレスを非表示
+                    container.addEventListener('mouseleave', () => {
+                        tooltip.style.display = 'none';
+                    });
+                });
+
+            } else {
+                // モバイル環境
+                document.querySelectorAll('.avatar-container_2').forEach(container => {
+                    let tapped = false;
+                    const tooltip = container.querySelector('.address-tooltip');
+
+                    // タップでアドレスを表示
+                    container.addEventListener('click', function (e) {
+                        e.preventDefault(); // デフォルトのリンク動作を無効化
+                        if (!tapped) {
+                            // 最初のタップでアドレス表示
+                            tooltip.style.display = 'block';
+                            tapped = true;
+                        } else {
+                            // 2回目のタップでリンク先へ移動
+                            window.location.href = this.querySelector('a').href;
+                            tapped = false;
+                        }
+                    });
+
+                    // 別の場所をタップしたときにアドレスを非表示にする
+                    document.addEventListener('click', function (event) {
+                        if (!container.contains(event.target)) {
+                            tooltip.style.display = 'none';
+                            tapped = false;
+                        }
+                    });
+                });
+            }
+
+        }
+
+        function hexToUtf8(hex) {
+            // 16進数の文字列をバイト配列に変換
+            const bytes = [];
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes.push(parseInt(hex.substr(i, 2), 16));
+            }
+
+            // バイト配列をUTF-8文字列に変換
+            const utf8String = new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+            return utf8String;
+        }
+
+        function hexToBytes(hex) {
+            const bytes = [];
+            for (let c = 0; c < hex.length; c += 2) {
+                bytes.push(parseInt(hex.substr(c, 2), 16));
+            }
+            return new Uint8Array(bytes);
+        }
+
+        function utf8ToHex(str) {
+            const encoder = new TextEncoder(); // UTF-8エンコーダ
+            const bytes = encoder.encode(str); // UTF-8バイト配列に変換
+            return Array.from(bytes)
+                .map(byte => byte.toString(16).padStart(2, '0')) // 各バイトを16進数に変換
+                .join(''); // 配列を文字列に結合
+        }
+
+        // メッセージをデコードしてから不要な制御文字を取り除く関数
+        function cleanMessage(rawMessage) {
+            // 16進数からUTF-8にデコード
+            let decodedMessage = hexToUtf8(rawMessage);
+            // 先頭の制御文字や不可視の文字、ヌル文字を削除
+            decodedMessage = decodedMessage.replace(/^[\u200B-\u200D\uFEFF\xA0\s\x00]*/g, ''); // 不可視文字や空白、ヌル文字を削除
+            return decodedMessage;
+        }
+
+
+        function handleShareClick(event) {
+            event.preventDefault();
+            const pageUrl = event.currentTarget.getAttribute('data-url');
+            const message = `#Symbol #XYM_Thread ${pageUrl}`;
+            const x_Url = `https://x.com/intent/post?text=${encodeURIComponent(message)}`;
+            window.open(x_Url, '_blank');
+        }
+
+        function openThread(event) {
+            const transactionHash = event.currentTarget.getAttribute('data-hash');
+            window.location.href = `thread.html?id=${transactionHash}`;
+        }
+    </script>
+</body>
+
+</html>

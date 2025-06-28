@@ -1,0 +1,946 @@
+/* Body Styling */
+body {
+    background: linear-gradient(135deg, #f3f3f3, #e0e0e0); /* グラデーション背景 */
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
+}
+
+/* Header Styling */
+#header {
+    text-align: center;
+    margin-top: 50px;
+}
+
+#header img {
+    width: 100%; /* Adjust the width to fit the container */
+    max-width: 830px; /* Limit the maximum width */
+    height: auto;
+}
+
+@media screen and (max-width: 768px) {
+    #header img {
+        width: 100%;
+    }
+}
+
+label {
+    display: block;  
+    text-align: left; 
+    margin-bottom: 5px; 
+    font-size: 14px; 
+    font-weight: bold; 
+    color: #333; 
+}
+
+
+/* Modal Base Styling */
+.modal, .social-metadata-modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.social-metadata-modal {
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+}
+
+/* Modal Content Styling */
+.modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px; 
+    width: 90%; 
+    max-width: 400px;
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.1); 
+    color: #333;
+}
+
+.social-metadata-modal .modal-content {
+    padding: 40px;
+    border-radius: 15px; 
+    max-width: 450px;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2); 
+    text-align: center;
+}
+
+@media screen and (max-width: 768px) {
+    .modal-content {
+        width: 90%; 
+        padding: 20px;
+    }
+}
+
+/* Close Button Styling */
+.close {
+    color: #888;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Form Element Styling */
+textarea, input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
+}
+
+/* Button Styling */
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    margin: 10px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+button.create-thread, button.reply-comment {
+    background: linear-gradient(to bottom, #4CAF50, #2F8F2F);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 280px;
+    display: block;
+    margin: 20px auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+button:hover {
+    background: linear-gradient(to bottom, #3E8E41, #267A26);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
+button:active {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(2px);
+    cursor: pointer;
+}
+
+#submit-metadata {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+#submit-metadata:hover {
+    background-color: #45a049;
+}
+
+#cancel-metadata {
+    background-color: #f44336;
+    color: white;
+    font-weight: bold;
+}
+
+#cancel-metadata:hover {
+    background-color: #d73933;
+}
+
+/* Avatar Styling */
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 20px;
+}
+
+.modal-content .avatar-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.modal-content img.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Header and Text Styling */
+h2 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Poppins', sans-serif; /* モダンフォント */
+}
+
+h3 {
+    font-size: 20px;
+    color: blue;
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Poppins', sans-serif;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+/* Thread List Styling */
+#thread-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.thread-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f9f9f9;
+    margin: 10px;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px;
+    border: 2px solid rgba(100, 149, 237, 0.8);
+    box-shadow: 0 0 10px rgba(100, 149, 237, 0.5);
+    box-sizing: border-box;
+}
+
+@media screen and (max-width: 768px) {
+    .thread-item {
+        width: 100%;  /* モバイル表示では幅を少し縮めて画面に収める */
+        margin: 3px;  /* モバイルでは余白を少し減らす */
+    }
+}
+
+
+.thread-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.thread-info {
+    flex-grow: 1;
+    text-align: right;
+}
+
+.thread-date, .thread-amount {
+    margin: 5px 0;
+    text-align: right;
+    color: blueviolet;
+    box-shadow: none;
+}
+
+.border-line {
+    width: 100%;
+    height: 2px;
+    background-color: #c9dffc;
+    margin: 10px 0;
+}
+
+.thread-message {
+    word-wrap: break-word;
+    word-break: break-all;
+    margin-top: 20px;
+    font-size: 24px;
+    text-align: center;
+    color: blue;
+    font-family: 'Poppins', sans-serif;
+}
+
+#thread-container {
+    max-width: 800px;
+    margin: 70px auto 20px; 
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+
+/* Spinner Styling */
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loading-spinner {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Hamburger Menu Styling */
+.hamburger-menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+.menu-icon {
+    display: inline-block;
+    cursor: pointer;
+    width: 35px;
+    height: 30px;
+    position: relative;
+}
+
+.menu-icon span {
+    display: block;
+    width: 100%;
+    height: 4px;
+    background-color: #333;
+    margin: 5px 0;
+    transition: all 0.3s ease;
+}
+
+#menu-toggle {
+    display: none;
+}
+
+#menu-toggle:checked + .menu-icon span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+}
+
+#menu-toggle:checked + .menu-icon span:nth-child(2) {
+    opacity: 0;
+}
+
+#menu-toggle:checked + .menu-icon span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 999;
+    width: 80px;
+}
+
+.menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu ul li {
+    margin: 10px 0;
+}
+
+.menu ul li a {
+    text-decoration: none;
+    color: blue;
+    font-size: 16px;
+    display: block;
+}
+
+#menu-toggle:checked + .menu-icon + .menu {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+.info-display {
+    display: flex;
+    align-items: center;
+}
+
+.xym-icon, .comment-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}
+
+.fontsize-icon {
+    width: 20px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+.total-xym, .comment-count {
+    font-size: 16px;
+    margin-right: 15px;
+    color: black;
+}
+
+#home-button, #x-share-button {
+    position: fixed;
+    top: 10px;
+    text-decoration: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+#home-button {
+    right: 10px;
+    cursor: pointer;
+}
+
+#x-share-button {
+    right: 70px;
+    cursor: pointer;
+}
+
+#home-icon, #x-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+#home-icon:hover, #x-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Thread footer styling to align share button and open icon button */
+.thread-footer {
+    display: flex;
+    justify-content: flex-end; /* 子要素を右寄せ */
+   /* justify-content: space-between; */
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+/* X share button styling */
+.x-share-button_th {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.x-icon_th {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.x-icon_th:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Open thread icon button styling */
+.open-thread-icon-button {
+    position: absolute;
+    bottom: -70px;
+    right: 10px;
+    background: linear-gradient(to bottom, #6c8bfd, #5a7ecc);
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.open-thread-icon-button:hover {
+    background: linear-gradient(to bottom, #2f7bff, #1a5ebb);
+    transform: scale(1.1);
+}
+
+#load-more {
+    background: linear-gradient(to bottom, #6c8bfd, #5a7ecc);
+    padding: 10px 20px;
+    border: none;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+#load-more:hover {
+    background: linear-gradient(to bottom, #2f7bff, #1a5ebb);
+    transform: scale(1.1);
+}
+
+#load-more:active {
+    transform: scale(0.95);
+}
+
+.open-icon {
+    width: 30px;
+    height: 30px;
+    transition: transform 0.3s ease;
+}
+
+.avatar-container_2 {
+    position: relative;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+   /* gap: 8px;*/
+   /* display: inline-block;*/
+}
+
+.avatar-container_2 a {
+    text-decoration: none;
+}
+
+/*
+.smd-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: blue;
+    position: relative;
+    top: -17px;
+}*/
+
+.smd-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: blue;
+    text-align: center; /* 名前を中央揃え */
+    margin-left: -10px; /* 余計な余白を削除 */
+    margin-top: 5px; /* アイコンと名前の間隔を調整 */
+    display: inline-block;
+}
+
+.top-thread .smd-name {
+    display: block;
+    text-align: center;
+    margin-left: -10px;
+    margin-top: 5px; /* アイコンとの間隔を調整 */
+}
+
+/* カレンダーボタンのスタイル */
+#calendar-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: radial-gradient(circle, #1E90FF 30%, #1080ff 70%);
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease-in-out; 
+    z-index: 9999;
+}
+
+/* マウスオーバー時に元の青を少し濃くする */
+#calendar-button:hover {
+    background: radial-gradient(circle, #1C7CD6 30%, #1176e1 70%);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+/* クリック時のアクティブエフェクト */
+#calendar-button:active {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(2px);
+}
+
+
+
+/* アイコンのスタイル調整 */
+#calendar-button img {
+    width: 40px;
+    height: 40px;
+}
+
+
+.calendar-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    min-width: 300px;
+    text-align: center;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.calendar-header button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.calendar-header button:hover {
+    background-color: #0056b3;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);  /* 7列を均等に配置 */
+    gap: 5px;  /* 間隔を少し広げる */
+    justify-content: center;  /* 中央揃え */
+    align-items: center;  /* 縦方向も中央揃え */
+    width: fit-content;  /* 必要な分だけ幅を設定 */
+    margin: 0 auto;  /* 左右中央揃え */
+}
+
+
+.calendar-day-name {
+    text-align: center;
+    font-weight: bold;
+}
+
+.calendar-day {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    margin: 2px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.marked-day {
+    background-color: #ff4500;
+    color: white;
+    font-weight: bold;
+}
+
+.close-calendar {
+    position: absolute;
+    top: 0px;
+    right: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff4500;
+    cursor: pointer;
+}
+
+.close-calendar:hover {
+    color: #b30000;
+}
+
+.picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.picker-container {
+    background: white;
+    width: 280px;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.picker-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.picker-body {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.picker-body select {
+    width: 100px;
+    font-size: 16px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.picker-footer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.picker-footer button {
+    flex: 1;
+    min-width: 100px;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#cancel-picker {
+    background: #ccc;
+    color: black;
+}
+
+#cancel-picker:hover {
+    background: #bbb;
+}
+
+#confirm-picker {
+    background: blue;
+    color: white;
+}
+
+#confirm-picker:hover {
+    background: darkblue;
+}
+
+
+
+
+
+
+/* おみくじボタンのスタイル */
+#omikuji-button {
+    background: linear-gradient(to bottom, #FF9800, #FF5722); /* 鮮やかなオレンジのグラデーション */
+    color: white; /* 文字色 */
+    font-size: 18px; /* 文字サイズ */
+    font-weight: bold; /* 文字を太く */
+    border: none; /* 枠線なし */
+    padding: 15px 25px; /* パディング調整 */
+    border-radius: 50px; /* 丸みを帯びたボタン */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* 軽い影 */
+    text-align: center; /* テキスト中央揃え */
+    cursor: pointer; /* カーソルをポインターに */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* ホバー時のアニメーション */
+    width: 230px;
+}
+
+#omikuji-button:hover {
+    background: linear-gradient(to bottom, #FF7043, #F4511E); /* ホバー時に少し濃い色に変化 */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4); /* 影を強調 */
+    transform: translateY(-3px); /* ボタンを少し浮かせる */
+}
+
+#omikuji-button:active {
+    transform: translateY(2px); /* クリック時に軽く押し込む */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 全体のスピナー背景 */
+#omikuji-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8); /* 半透明の背景 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* おみくじアニメーションのコンテナ */
+.omikuji-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff, #ffe4b5); /* グラデーション背景 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 背景の装飾リング */
+.omikuji-bg {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 8px solid #ffcc00; /* 金色の枠 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(45deg, #fffae6, #fff3b0); /* 優しい色合い */
+    animation: spin 3s linear infinite; /* 回転アニメーション */
+}
+
+/* おみくじテキスト */
+#omikuji-text {
+    font-size: 32px;
+    font-weight: bold;
+    color: #d9534f; /* 赤色 */
+    animation: scaleText 0.1s linear infinite; /* 拡大縮小のアニメーション */
+}
+
+/* 回転アニメーション */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* テキストの拡大縮小アニメーション */
+@keyframes scaleText {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 大吉用デザイン */
+.custom-swal-popup-dakichi {
+    border-radius: 20px !important;
+   /* box-shadow: 0 10px 30px rgba(255, 69, 0, 0.5) !important;*/
+}
+
+/* 通常用デザイン */
+.custom-swal-popup-default {
+    border-radius: 15px !important;
+   /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;*/
+}
+
+/* タイトルデザイン（大吉） */
+.custom-swal-title-dakichi {
+    font-family: 'Poppins', sans-serif !important;
+    text-align: center;
+}
+
+/* タイトルデザイン（通常） */
+.custom-swal-title-default {
+    font-family: 'Poppins', sans-serif !important;
+    text-align: center;
+    color: #555 !important;
+}
+
+/* コンテンツデザイン（大吉） */
+.custom-swal-content-dakichi {
+    font-family: 'Poppins', sans-serif !important;
+    text-align: center;
+}
+
+/* コンテンツデザイン（通常） */
+.custom-swal-content-default {
+    font-family: 'Poppins', sans-serif !important;
+    text-align: center;
+    color: #333 !important;
+}
+
+
+/* アイコン用のカスタムクラス */
+.custom-icon-wrapper {
+    width: 80px; /* サイズを統一 */
+    height: 80px;
+    background-color: transparent; /* 背景を透明に */
+    border-radius: 50%; /* 丸くする */
+    border: 4px solid #fff !important; /* 白い枠を適用 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: none !important; /* 影を消す */
+}
+
+/* 大吉用 */
+.custom-icon-wrapper-dakichi {
+    background-color: #ffe4e1 !important;
+}
+
+/* 通常用 */
+.custom-icon-wrapper-default {
+    background-color: #f0f0f0 !important;
+}
