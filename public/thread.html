@@ -15,13 +15,13 @@
     <meta property="og:title" content="XYM Thread (ジムスレッド)">
     <meta property="og:description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
     <meta property="og:url" content="https://xym-thread.com/thread.html">
-    <meta property="og:image" content="https://xym-thread.com/src/xymthread_small.png">
+    <meta property="og:image" content="https://xym-thread.com/src/xymthread_small2.png">
 
     <!-- Twitterカード -->
     <meta name="twitter:card" content="summary"> <!-- 小さい画像用 -->
     <meta name="twitter:title" content="XYM Thread (ジムスレッド)">
     <meta name="twitter:description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
-    <meta name="twitter:image" content="https://xym-thread.com/src/xymthread_small.png">
+    <meta name="twitter:image" content="https://xym-thread.com/src/xymthread_small2.png">
 
     <!-- JSON-LD構造化データ -->
     <script type="application/ld+json">
@@ -49,6 +49,10 @@
     <div id="loading-spinner" style="display:none;">
         <div class="spinner"></div>
     </div>
+
+    <header id="header">
+        <img src="src/xymthread2.png" alt="XYM Thread Banner" style="width:300px; height:auto;">
+    </header>
 
     <a href="index.html" id="home-button">
         <img src="src/home.png" alt="ホーム" id="home-icon">
@@ -273,6 +277,12 @@
                     fetchMetadataAndSetIcon(tx.transaction.signerPublicKey, threadElement);
 
                     addHoverEffect();  // リスナーを再設定
+
+                    // 日付クリックでSymbolエクスプローラーを開くイベントリスナーを追加
+                    threadElement.querySelector('.thread-date').addEventListener('click', () => {
+                        const explorerUrl = `https://symbol.fyi/transactions/${transactionHash}`;
+                        window.open(explorerUrl, '_blank');
+                    });
 
                     // コメント数とXYM合計を表示
                     fetchThreadCommentsV3(transactionHash, threadOwner, threadTimestamp);
@@ -625,6 +635,12 @@
                             document.querySelectorAll('.x-share-button_th').forEach(button => {
                                 button.removeEventListener('click', handleShareClick);
                                 button.addEventListener('click', handleShareClick);
+                            });
+
+                            // 日付クリックでSymbolエクスプローラーを開くイベントリスナーを追加
+                            threadElement.querySelector('.thread-date').addEventListener('click', () => {
+                                const explorerUrl = `https://symbol.fyi/transactions/${threadHash2}`;
+                                window.open(explorerUrl, '_blank');
                             });
 
                             //  コメント数の取得

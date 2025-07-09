@@ -255,6 +255,22 @@ h3 {
     box-shadow: none;
 }
 
+.thread-date {
+  /* ブロック → インラインブロックに */
+  display: inline-block;
+  /* ここだけにポインターを出す */
+  cursor: pointer;
+}
+
+.thread-date:hover {
+    text-decoration: underline;
+    color: #cce5ff;
+}
+
+.thread-date:active {
+    background-color: #cce5ff; /* タップ時の背景色 */
+}
+
 .border-line {
     width: 100%;
     height: 2px;

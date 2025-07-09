@@ -758,6 +758,12 @@ function appendThread(tx) {
         button.addEventListener('click', handleShareClick);
     });
 
+    // 日付クリックでSymbolエクスプローラーを開くイベントリスナーを追加
+    threadElement.querySelector('.thread-date').addEventListener('click', () => {
+        const explorerUrl = `https://symbol.fyi/transactions/${threadHash}`;
+        window.open(explorerUrl, '_blank');
+    });
+
     // コメント数の取得
     fetchThreadCommentsV3(threadHash, threadOwner, threadTimestamp);
 }
