@@ -15,7 +15,7 @@ document.getElementById('loading-spinner').style.display = 'block';
 
 async function getAvailableNode() {
     const fixedNode = 'https://symbol-mikun.net:3001'; // 固定ノード
-    const NodesUrl = 'https://symbol.services/nodes?filter=suggested&limit=1000&ssl=true';
+    const NodesUrl = 'https://mainnet.dusanjp.com:3004/nodes?filter=suggested&limit=1000&ssl=true';
 
     // 🔹 まずノードリストから探す
     try {
@@ -860,7 +860,7 @@ async function fetchThreadCommentsV3(threadHash, threadOwner, threadTimestamp) {
                 break;
             }
 
-            //console.log("tx=",tx);
+          //  console.log("tx=",tx);
             // コメントのカウント処理
             if (tx.transaction.message) {
                 const decodedMessage = hexToUtf8(tx.transaction.message);
