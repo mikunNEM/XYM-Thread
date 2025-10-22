@@ -71,7 +71,7 @@ async function loadSDK() {
         return;
     }
 
-    const SDK_VERSION = "3.2.3";
+    const SDK_VERSION = "3.3.0";
     const sdk = await import(`https://unpkg.com/symbol-sdk@${SDK_VERSION}/dist/bundle.web.js`);
     sdkCore = sdk.core;
     sdkSymbol = sdk.symbol;
