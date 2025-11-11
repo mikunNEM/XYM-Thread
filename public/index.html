@@ -4,18 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    
+
     <title>XYM Thread (ジムスレッド) - SYMBOLブロックチェーンに投稿するSNS</title>
-    
+
     <meta name="description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
     <meta name="keywords" content="XYM, Symbol, ブロックチェーン, 分散型SNS, 暗号通貨, Web3, NFT, XYM Thread">
-    
+
     <meta property="og:type" content="website">
     <meta property="og:title" content="XYM Thread (ジムスレッド) - SYMBOLブロックチェーンに投稿するSNS">
     <meta property="og:description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
     <meta property="og:url" content="https://xym-thread.com/">
     <meta property="og:image" content="https://xym-thread.com/src/xymthread2.png">
-    
+
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="XYM Thread (ジムスレッド) - SYMBOLブロックチェーンに投稿するSNS">
     <meta name="twitter:description" content="SYMBOLブロックチェーンを活用したスレッドです。XYMを使って投稿・コメントしよう！">
@@ -44,6 +44,12 @@
     <header id="header">
         <img src="src/xymthread2.png" alt="XYM Thread Banner">
     </header>
+
+    <div style="text-align:center; margin:15px 0;">
+        <button id="register-line-notify" style="background:#00B900; color:white; padding:10px 16px; border:none; border-radius:6px; font-weight:bold; font-size:14px;">
+            LINE通知を登録
+        </button>
+    </div>
 
     <div class="hamburger-menu">
         <input type="checkbox" id="menu-toggle">
@@ -92,14 +98,14 @@
     <button id="calendar-button">
         <img src="src/calendar.png" alt="カレンダー">
     </button>
-    
+
     <div id="calendar-popup" class="calendar-modal">
         <div class="calendar-content">
             <span class="close-calendar">&times;</span>
             <div id="calendar"></div>
         </div>
     </div>
-       
+
 
     <!-- モーダルのHTML -->
     <div id="modal" class="modal">

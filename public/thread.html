@@ -54,6 +54,13 @@
         <img src="src/xymthread2.png" alt="XYM Thread Banner" style="width:300px; height:auto;">
     </header>
 
+    <div style="text-align:center; margin:15px 0;">
+        <button id="register-line-notify"
+            style="background:#00B900; color:white; padding:10px 16px; border:none; border-radius:6px; font-weight:bold; font-size:14px;">
+            LINE通知を登録
+        </button>
+    </div>
+
     <a href="index.html" id="home-button">
         <img src="src/home.png" alt="ホーム" id="home-icon">
     </a>
@@ -482,6 +489,10 @@
                 window.SSS.setTransactionByPayload(payload);
                 window.SSS.requestSign().then(signedPayload => {   // SSSを用いた署名をユーザーに要求
                     console.log('signedPayload', signedPayload);
+
+                    txHash = signedPayload.transactionHash;
+                    //shortTag = `#${txHash.substring(0, 5)}`;
+
                     jsonPayload = `{"payload": "${signedPayload.payload}"}`
                     // SSSで署名されたトランザクションの送信
                     fetch(`${NODE}/transactions`, {
@@ -491,6 +502,16 @@
                     })
                         .then(response => {
                             if (response.ok) {
+                                // Vercel にコメント登録
+                                fetch('https://xym-thread-notifications.vercel.app/api/save-comment', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        thread_hash: txHash.substring(0, 5),
+                                        sender_pubkey: window.SSS.activePublicKey
+                                    })
+                                });
+
                                 console.log('トランザクションが送信されました！');
                                 Swal.fire({
                                     title: 'Success!',

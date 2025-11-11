@@ -518,6 +518,9 @@ function sendThreadTransaction(message, amount) {
         window.SSS.setTransactionByPayload(payload);
         window.SSS.requestSign().then(signedPayload => {   // SSSを用いた署名をユーザーに要求
             console.log('signedPayload', signedPayload);
+
+            txHash = signedPayload.transactionHash; // 64文字のフルハッシュ
+
             jsonPayload = `{"payload": "${signedPayload.payload}"}`
             // SSSで署名されたトランザクションの送信
             fetch(`${NODE}/transactions`, {
@@ -533,6 +536,17 @@ function sendThreadTransaction(message, amount) {
                             text: 'アナウンスが送信されました！',
                             icon: 'success',
                             confirmButtonText: 'OK'
+                        });
+
+                        // Vercel にスレッド登録
+                        fetch('https://xym-thread-notifications.vercel.app/api/save-thread', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                hash: txHash,
+                                owner_pubkey: window.SSS.activePublicKey,
+                                title: document.getElementById('thread-message').value.trim()
+                            })
                         });
                     } else {
                         console.error('トランザクションの送信に失敗しました:', response);
@@ -860,7 +874,7 @@ async function fetchThreadCommentsV3(threadHash, threadOwner, threadTimestamp) {
                 break;
             }
 
-          //  console.log("tx=",tx);
+            //  console.log("tx=",tx);
             // コメントのカウント処理
             if (tx.transaction.message) {
                 const decodedMessage = hexToUtf8(tx.transaction.message);
@@ -1318,3 +1332,21 @@ async function fetchPostDates() {
     postDates = allPostDates;
     console.log("投稿日一覧（全取得）:", postDates);
 }
+
+
+// script.js 末尾
+document.getElementById('register-line-notify')?.addEventListener('click', async () => {
+  const lineUserId = prompt('【LINE通知登録】\n\nあなたのLINE User ID:');
+  if (!lineUserId?.trim()) return;
+
+  const pubkey = window.SSS?.activePublicKey;
+  if (!pubkey) return alert('SSSに接続してください');
+
+  const res = await fetch('https://xym-thread-notifications.vercel.app/api/save-user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pubkey, line_user_id: lineUserId.trim() })
+  });
+
+  alert(res.ok ? '登録完了！新着で通知します！' : '登録失敗');
+});
