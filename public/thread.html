@@ -55,7 +55,7 @@
     </header>
 
     <div style="text-align:center; margin:15px 0;">
-        <button id="register-line-notify"
+        <button id="register-line-notify2"
             style="background:#00B900; color:white; padding:10px 16px; border:none; border-radius:6px; font-weight:bold; font-size:14px;">
             LINE通知を登録
         </button>
@@ -930,7 +930,7 @@
         }
 
         // script.js 末尾
-        document.getElementById('register-line-notify')?.addEventListener('click', async () => {
+        document.getElementById('register-line-notify2')?.addEventListener('click', async () => {
             const lineUserId = prompt('【LINE通知登録】\n\nあなたのLINE User ID:');
             if (!lineUserId?.trim()) return;
 
