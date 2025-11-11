@@ -487,6 +487,61 @@
                 const payload = sdkCore.utils.uint8ToHex(tx.serialize());
 
                 window.SSS.setTransactionByPayload(payload);
+
+                window.SSS.requestSign().then(async signedPayload => {
+                    console.log('signedPayload', signedPayload);
+
+                    // ここで txHash を取得（フル64文字）
+                    const txHash = signedPayload.transactionHash;
+                    const shortHash = txHash.substring(0, 5);  // ここで短縮！
+
+                    const jsonPayload = `{"payload": "${signedPayload.payload}"}`;
+
+                    try {
+                        const response = await fetch(`${NODE}/transactions`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: jsonPayload
+                        });
+
+                        if (response.ok) {
+                            console.log('トランザクションが送信されました！');
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'コメントが投稿されました！',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+
+                            // Vercel にコメント登録（shortHash 使用）
+                            await fetch('https://xym-thread-notifications.vercel.app/api/save-comment', {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    thread_hash: shortHash,           // ← ここ！
+                                    sender_pubkey: window.SSS.activePublicKey
+                                })
+                            }).catch(err => console.error('save-comment error:', err));
+
+                            // モーダル閉じる
+                            document.getElementById('comment-modal')?.style.display = 'none';
+
+                        } else {
+                            console.error('トランザクション送信失敗:', response.status);
+                            Swal.fire('エラー', '送信に失敗しました', 'error');
+                        }
+                    } catch (error) {
+                        console.error('ネットワークエラー:', error);
+                        Swal.fire('エラー', '通信エラー', 'error');
+                    }
+
+                }).catch(error => {
+                    console.error('SSS署名エラー:', error);
+                    Swal.fire('エラー', '署名に失敗しました', 'error');
+                });
+
+                /*
                 window.SSS.requestSign().then(signedPayload => {   // SSSを用いた署名をユーザーに要求
                     console.log('signedPayload', signedPayload);
 
@@ -529,7 +584,7 @@
                         });
                 }).catch((error) => {
                     console.error('署名のエラー:', error);
-                })
+                })　*/
             }
         }
 
