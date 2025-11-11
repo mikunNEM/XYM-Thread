@@ -493,7 +493,7 @@
                     console.log('signedPayload', signedPayload);
 
                     txHash = signedPayload.transactionHash;
-                    //shortTag = `#${txHash.substring(0, 5)}`;
+                    shortTag = `#${txHash.substring(0, 5)}`;
 
                     jsonPayload = `{"payload": "${signedPayload.payload}"}`
                     // SSSで署名されたトランザクションの送信
@@ -518,7 +518,7 @@
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                        thread_hash: txHash.substring(0, 5),
+                                        thread_hash: shortTag, //txHash.substring(0, 5),
                                         sender_pubkey: window.SSS.activePublicKey
                                     })
                                 });
