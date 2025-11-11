@@ -502,6 +502,15 @@
                     })
                         .then(response => {
                             if (response.ok) {
+
+                                console.log('トランザクションが送信されました！');
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'アナウンスが送信されました！',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                });
+
                                 // Vercel にコメント登録
                                 fetch('https://xym-thread-notifications.vercel.app/api/save-comment', {
                                     method: 'POST',
@@ -510,14 +519,6 @@
                                         thread_hash: txHash.substring(0, 5),
                                         sender_pubkey: window.SSS.activePublicKey
                                     })
-                                });
-
-                                console.log('トランザクションが送信されました！');
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: 'アナウンスが送信されました！',
-                                    icon: 'success',
-                                    confirmButtonText: 'OK'
                                 });
                             } else {
                                 console.error('トランザクションの送信に失敗しました:', response);
