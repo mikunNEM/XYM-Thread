@@ -5,6 +5,7 @@ let NODE;
 let epochAdjustment;
 let facade;
 let PublicAccount;
+let txHash;
 
 // 非表示リスト
 const badThreadList = ['88A695491C7BDFCAF9857E02FB82A91C392C927F837B3259877E667BE21BEB96',
