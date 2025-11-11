@@ -1251,6 +1251,7 @@ document.getElementById('register-line-notify')?.addEventListener('click', async
 
   const res = await fetch('https://xym-thread-notifications.vercel.app/api/save-user', {
     method: 'POST',
+    mode: 'cors',  // 追加！
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pubkey, line_user_id: lineUserId.trim() })
   });
