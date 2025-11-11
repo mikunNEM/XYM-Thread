@@ -100,6 +100,7 @@
         let facade;
         let PublicAccount;
         let pubkey;
+        let shortTag2;
 
         // 非表示リスト
         const badThreadList = ['88A695491C7BDFCAF9857E02FB82A91C392C927F837B3259877E667BE21BEB96',
@@ -491,10 +492,9 @@
                 window.SSS.requestSign().then(signedPayload => {   // SSSを用いた署名をユーザーに要求
                     console.log('signedPayload', signedPayload);
 
-                    txHash = signedPayload.transactionHash;
-                    shortTag = `#${txHash.substring(0, 5)}`;
-
-                    console.log('txHash=', txHash); //
+                    txHash = signedPayload.hash;
+                    shortTag2 = `#${txHash.substring(0, 5)}`;
+                  
                     jsonPayload = `{"payload": "${signedPayload.payload}"}`
                     // SSSで署名されたトランザクションの送信
                     fetch(`${NODE}/transactions`, {
@@ -518,7 +518,7 @@
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                        thread_hash: shortTag, //txHash.substring(0, 5),
+                                        thread_hash: shortTag2, //txHash.substring(0, 5),
                                         sender_pubkey: window.SSS.activePublicKey
                                     })
                                 });
