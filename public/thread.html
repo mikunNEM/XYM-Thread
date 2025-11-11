@@ -928,6 +928,23 @@
             const transactionHash = event.currentTarget.getAttribute('data-hash');
             window.location.href = `thread.html?id=${transactionHash}`;
         }
+
+        // script.js 末尾
+        document.getElementById('register-line-notify')?.addEventListener('click', async () => {
+            const lineUserId = prompt('【LINE通知登録】\n\nあなたのLINE User ID:');
+            if (!lineUserId?.trim()) return;
+
+            const pubkey = window.SSS?.activePublicKey;
+            if (!pubkey) return alert('SSSに接続してください');
+
+            const res = await fetch('https://xym-thread-notifications.vercel.app/api/save-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pubkey, line_user_id: lineUserId.trim() })
+            });
+
+            alert(res.ok ? '登録完了！コメントがあると通知します！' : '登録失敗');
+        });
     </script>
 </body>
 
