@@ -494,6 +494,7 @@
                     txHash = signedPayload.transactionHash;
                     shortTag = `#${txHash.substring(0, 5)}`;
 
+                    console.log('txHash=', txHash); //
                     jsonPayload = `{"payload": "${signedPayload.payload}"}`
                     // SSSで署名されたトランザクションの送信
                     fetch(`${NODE}/transactions`, {
