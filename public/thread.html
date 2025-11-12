@@ -55,10 +55,12 @@
     </header>
 
     <!-- LINE登録ボタン -->
-    <button onclick="openLineRegister()"
-        style="background:#00B900;color:white;padding:10px;border:none;border-radius:5px;">
-        LINE通知登録
-    </button>  
+    <div style="text-align: center; margin: 20px 0;">
+        <button onclick="openLineRegister()"
+            style="background:#00B900;color:white;padding:10px;border:none;border-radius:5px;">
+            LINE通知登録
+        </button>
+    </div>
 
     <a href="index.html" id="home-button">
         <img src="src/home.png" alt="ホーム" id="home-icon">
@@ -493,7 +495,7 @@
 
                     txHash = signedPayload.hash;
                     shortTag2 = `${txHash.substring(0, 5)}`;
-                  
+
                     jsonPayload = `{"payload": "${signedPayload.payload}"}`
                     // SSSで署名されたトランザクションの送信
                     fetch(`${NODE}/transactions`, {
