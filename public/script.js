@@ -1243,20 +1243,9 @@ async function fetchPostDates() {
 }
 
 
-// script.js 末尾
-document.getElementById('register-line-notify')?.addEventListener('click', async () => {
-  const lineUserId = prompt('【LINE通知登録】\n\nあなたのLINE User ID:');
-  if (!lineUserId?.trim()) return;
-
-  const pubkey = window.SSS?.activePublicKey;
-  if (!pubkey) return alert('SSSに接続してください');
-
-  const res = await fetch('https://xym-thread-notifications.vercel.app/api/save-user', {
-    method: 'POST',
-    mode: 'cors',  // 追加！
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pubkey, line_user_id: lineUserId.trim() })
-  });
-
-  alert(res.ok ? '登録完了！新着で通知します！' : '登録失敗');
-});
+// LINE登録ウィンドウを開く
+function openLineRegister() {
+    const pubkey = window.SSS?.activePublicKey || 'UNKNOWN';
+    const url = `https://xym-thread-notifications.vercel.app/api/line-register?pubkey=${pubkey}`;
+    window.open(url, '_blank', 'width=400,height=600');
+}
