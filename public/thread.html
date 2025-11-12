@@ -55,9 +55,9 @@
     </header>
 
     <!-- LINE登録ボタン -->
-    <div style="text-align: center; margin: 20px 0;">
+    <div style="display: flex; justify-content: center; margin: 30px 0;">
         <button onclick="openLineRegister()"
-            style="background:#00B900;color:white;padding:10px;border:none;border-radius:5px;">
+            style="background:#00B900; color:white; padding:14px 28px; border:none; border-radius:10px; font-weight:bold; font-size:17px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
             LINE通知登録
         </button>
     </div>
@@ -933,23 +933,22 @@
             window.location.href = `thread.html?id=${transactionHash}`;
         }
 
-        // script.js 末尾
-        document.getElementById('register-line-notify2')?.addEventListener('click', async () => {
-            const lineUserId = prompt('【LINE通知登録】\n\nあなたのLINE User ID:');
-            if (!lineUserId?.trim()) return;
+        function openLineRegister() {
+            const pubkey = window.SSS?.activePublicKey || '';
+            const url = `https://xym-thread-notifications.vercel.app/api/line-register?pubkey=${pubkey}`;
 
-            const pubkey = window.SSS?.activePublicKey;
-            if (!pubkey) return alert('SSSに接続してください');
+            // 画面中央にポップアップ（420x680）
+            const width = 420;
+            const height = 680;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2 - 50; // 少し上め
 
-            const res = await fetch('https://xym-thread-notifications.vercel.app/api/save-user', {
-                method: 'POST',
-                mode: 'cors',  // 追加！
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pubkey, line_user_id: lineUserId.trim() })
-            });
-
-            alert(res.ok ? '登録完了！コメントがあると通知します！' : '登録失敗');
-        });
+            window.open(
+                url,
+                '_blank',
+                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+            );
+        }
     </script>
 </body>
 

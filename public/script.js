@@ -1245,7 +1245,18 @@ async function fetchPostDates() {
 
 // LINE登録ウィンドウを開く
 function openLineRegister() {
-    const pubkey = window.SSS?.activePublicKey || 'UNKNOWN';
+    const pubkey = window.SSS?.activePublicKey || '';
     const url = `https://xym-thread-notifications.vercel.app/api/line-register?pubkey=${pubkey}`;
-    window.open(url, '_blank', 'width=400,height=600');
+
+    // 画面中央にポップアップ（420x680）
+    const width = 420;
+    const height = 680;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2 - 50; // 少し上め
+
+    window.open(
+        url,
+        '_blank',
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    );
 }
