@@ -522,7 +522,7 @@ function sendThreadTransaction(message, amount) {
         window.SSS.requestSign().then(signedPayload => {   // SSSを用いた署名をユーザーに要求
             console.log('signedPayload', signedPayload);
 
-            txHash = signedPayload.transactionHash; // 64文字のフルハッシュ
+            txHash = signedPayload.hash; // 64文字のフルハッシュ
 
             jsonPayload = `{"payload": "${signedPayload.payload}"}`
             // SSSで署名されたトランザクションの送信
