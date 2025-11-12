@@ -54,14 +54,6 @@
         <img src="src/xymthread2.png" alt="XYM Thread Banner" style="width:300px; height:auto;">
     </header>
 
-    <!-- LINE登録ボタン -->
-    <div style="display: flex; justify-content: center; margin: 30px 0;">
-        <button onclick="openLineRegister()"
-            style="background:#00B900; color:white; padding:14px 28px; border:none; border-radius:10px; font-weight:bold; font-size:17px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
-            LINE通知登録
-        </button>
-    </div>
-
     <a href="index.html" id="home-button">
         <img src="src/home.png" alt="ホーム" id="home-icon">
     </a>
@@ -933,22 +925,6 @@
             window.location.href = `thread.html?id=${transactionHash}`;
         }
 
-        function openLineRegister() {
-            const pubkey = window.SSS?.activePublicKey || '';
-            const url = `https://xym-thread-notifications.vercel.app/api/line-register?pubkey=${pubkey}`;
-
-            // 画面中央にポップアップ（420x680）
-            const width = 420;
-            const height = 680;
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2 - 50; // 少し上め
-
-            window.open(
-                url,
-                '_blank',
-                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-            );
-        }
     </script>
 </body>
 
