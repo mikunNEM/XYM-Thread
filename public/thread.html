@@ -493,7 +493,7 @@
                     console.log('signedPayload', signedPayload);
 
                     txHash = signedPayload.hash;
-                    shortTag2 = `#${txHash.substring(0, 5)}`;
+                    shortTag2 = `${txHash.substring(0, 5)}`;
                   
                     jsonPayload = `{"payload": "${signedPayload.payload}"}`
                     // SSSで署名されたトランザクションの送信
