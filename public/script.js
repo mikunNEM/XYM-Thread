@@ -542,6 +542,7 @@ function sendThreadTransaction(message, amount) {
                         // Vercel にスレッド登録
                         fetch('https://xym-thread-notifications.vercel.app/api/save-thread', {
                             method: 'POST',
+                            mode: 'cors',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 hash: txHash,

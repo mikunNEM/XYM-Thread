@@ -516,6 +516,7 @@
                                 // Vercel にコメント登録
                                 fetch('https://xym-thread-notifications.vercel.app/api/save-comment', {
                                     method: 'POST',
+                                    mode: 'cors',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         thread_hash: shortTag2, //txHash.substring(0, 5),
