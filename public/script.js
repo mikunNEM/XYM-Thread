@@ -459,7 +459,7 @@ document.getElementById('submit-metadata').addEventListener('click', async () =>
         const embeddedTransactions = [tx];
 
         // アグリゲートTx作成
-        const aggregateDescriptor = new sdkSymbol.descriptors.AggregateCompleteTransactionV2Descriptor(
+        const aggregateDescriptor = new sdkSymbol.descriptors.AggregateCompleteTransactionV3Descriptor(
             facade.constructor.hashEmbeddedTransactions(embeddedTransactions),
             embeddedTransactions
         );
