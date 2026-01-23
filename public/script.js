@@ -18,138 +18,28 @@ document.getElementById('loading-spinner').style.display = 'block';
 
 async function getAvailableNode() {
     const NODEWATCH_URL =
-        "https://nodewatch.symbol.tools/api/symbol/nodes/peer?only_ssl=true&limit=300&order=random";
+        "https://nodewatch.symbol.tools/api/symbol/nodes/peer?only_ssl=true&limit=10&order=random";
 
-    const FALLBACK_NODE = "https://symbol-mikun.net:3001";
+    const res = await fetch(NODEWATCH_URL);
+    const nodes = await res.json();
 
-    const CACHE_KEY = "symbolBestNodeV2";
-    const CACHE_TTL = 5 * 60 * 1000; // 5分
-
-    const NODEWATCH_TIMEOUT = 4000;
-    const HEALTH_TIMEOUT = 2500;
-
-    // ========================================
-    // ① キャッシュ即使用（最速）
-    // ========================================
-    const cachedRaw = localStorage.getItem(CACHE_KEY);
-
-    if (cachedRaw) {
-        try {
-            const { url, time } = JSON.parse(cachedRaw);
-
-            if (Date.now() - time < CACHE_TTL) {
-                const info = await fetch(`${url}/chain/info`, {
-                    signal: AbortSignal.timeout(HEALTH_TIMEOUT)
-                }).then(r => r.json());
-
-                if (info?.height) {
-                    console.log("⚡ キャッシュノード使用:", url);
-                    return url;
-                }
-            }
-        } catch {
-            console.warn("💀 キャッシュ無効 → 再探索");
-        }
-
-        localStorage.removeItem(CACHE_KEY);
-    }
-
-    // ========================================
-    // ② NodeWatch（リトライ付き）
-    // ========================================
-    let nodes;
-
-    for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-            const res = await fetch(NODEWATCH_URL, {
-                signal: AbortSignal.timeout(NODEWATCH_TIMEOUT)
-            });
-
-            nodes = await res.json();
-            if (nodes?.length) break;
-
-        } catch (e) {
-            console.warn(`NodeWatch retry ${attempt + 1}`, e);
-        }
-    }
-
-    if (!nodes?.length) {
-        console.warn("⚠️ NodeWatch失敗 → fallback");
-        return FALLBACK_NODE;
-    }
-
-    // ========================================
-    // ③ height上位抽出
-    // ========================================
-    nodes.sort((a, b) => b.height - a.height);
-    const candidates = nodes.slice(0, 5);
-
-    console.log("🔍 ノード速度＋同期チェック中...");
-
-    // ========================================
-    // ④ 並列 height + speed 測定
-    // ========================================
-    const results = await Promise.allSettled(
-        candidates.map(async (n) => {
-            const ep = new URL(n.endpoint);
-            ep.protocol = "https:";
-            const origin = ep.origin;
-
-            const start = performance.now();
-
-            const info = await fetch(`${origin}/chain/info`, {
-                signal: AbortSignal.timeout(HEALTH_TIMEOUT)
-            }).then(r => r.json());
-
-            const ms = performance.now() - start;
-
-            return {
-                url: origin,
-                height: Number(info.height),
-                ms
-            };
-        })
+    // 🇯🇵 日本ノード優先
+    let pool = nodes.filter(n =>
+        n.geoLocation?.country === "Japan" &&
+        n.isHealthy
     );
 
-    const ok = results
-        .filter(r => r.status === "fulfilled")
-        .map(r => r.value);
-
-    if (!ok.length) {
-        console.warn("⚠️ 全ノード失敗 → fallback");
-        return FALLBACK_NODE;
+    // 無ければ全体
+    if (!pool.length) {
+        pool = nodes.filter(n => n.isHealthy);
     }
 
-    // ========================================
-    // ⑤ 最新heightだけ残す
-    // ========================================
-    ok.sort((a, b) => b.height - a.height);
-    const maxHeight = ok[0].height;
+    // height最大
+    pool.sort((a, b) => b.height - a.height);
 
-    const synced = ok.filter(n => maxHeight - n.height <= 2);
+    const best = pool[0];
 
-    // ========================================
-    // ⑥ その中で最速
-    // ========================================
-    synced.sort((a, b) => a.ms - b.ms);
-    const best = synced[0];
-
-    console.log(
-        "🚀 BEST NODE:",
-        best.url,
-        `height=${best.height}`,
-        `${Math.round(best.ms)}ms`
-    );
-
-    // ========================================
-    // ⑦ キャッシュ保存
-    // ========================================
-    localStorage.setItem(
-        CACHE_KEY,
-        JSON.stringify({ url: best.url, time: Date.now() })
-    );
-
-    return best.url;
+    return new URL(best.endpoint).origin;
 }
 
 async function loadSDK() {
@@ -159,6 +49,7 @@ async function loadSDK() {
         console.error("🚨 使用可能なノードが見つかりませんでした。");
         return;
     }
+    console.log("ノード=", NODE);
 
     const SDK_VERSION = "3.3.0";
     const sdk = await import(`https://unpkg.com/symbol-sdk@${SDK_VERSION}/dist/bundle.web.js`);
