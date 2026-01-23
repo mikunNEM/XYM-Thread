@@ -17,54 +17,140 @@ const badThreadList = ['88A695491C7BDFCAF9857E02FB82A91C392C927F837B3259877E667B
 document.getElementById('loading-spinner').style.display = 'block';
 
 async function getAvailableNode() {
-    const fixedNode = 'https://symbol-mikun.net:3001'; // 固定ノード
-    const NodesUrl = 'https://mainnet.dusanjp.com:3004/nodes?filter=suggested&limit=1000&ssl=true';
+    const NODEWATCH_URL =
+        "https://nodewatch.symbol.tools/api/symbol/nodes/peer?only_ssl=true&limit=300&order=random";
 
-    // 🔹 まずノードリストから探す
-    try {
-        const response = await fetch(NodesUrl);
-        const data = await response.json();
+    const FALLBACK_NODE = "https://symbol-mikun.net:3001";
 
-        if (data && data.length > 0) {
-            // 🔹 `hostDetail.country === "Japan"` のノードをフィルタリング 🇯🇵
-            let availableNodes = data.filter(node => node.hostDetail?.country === "Japan");
+    const CACHE_KEY = "symbolBestNodeV2";
+    const CACHE_TTL = 5 * 60 * 1000; // 5分
 
-            if (availableNodes.length === 0) {
-                console.warn("⚠️ 日本のノードが見つからなかったため、全ノードから選択します");
-                availableNodes = data; // 日本のノードがなければ全ノードを使用
+    const NODEWATCH_TIMEOUT = 4000;
+    const HEALTH_TIMEOUT = 2500;
+
+    // ========================================
+    // ① キャッシュ即使用（最速）
+    // ========================================
+    const cachedRaw = localStorage.getItem(CACHE_KEY);
+
+    if (cachedRaw) {
+        try {
+            const { url, time } = JSON.parse(cachedRaw);
+
+            if (Date.now() - time < CACHE_TTL) {
+                const info = await fetch(`${url}/chain/info`, {
+                    signal: AbortSignal.timeout(HEALTH_TIMEOUT)
+                }).then(r => r.json());
+
+                if (info?.height) {
+                    console.log("⚡ キャッシュノード使用:", url);
+                    return url;
+                }
             }
-
-            // 🔹 ブロック高が高い順にソート（`chainHeight` が一番大きいノードを優先）
-            availableNodes.sort((a, b) => b.apiStatus.chainHeight - a.apiStatus.chainHeight);
-
-            // 🔹 最もブロック高が高いノードを選択
-            const selectedNode = availableNodes[0].apiStatus.restGatewayUrl;
-            console.log("🟢 最新ブロック高のノードを使用:", selectedNode, "（ブロック高:", availableNodes[0].apiStatus.chainHeight, "）");
-            return selectedNode;
-        } else {
-            console.warn("⚠️ バックアップノードが見つからなかった。固定ノードを試します。");
+        } catch {
+            console.warn("💀 キャッシュ無効 → 再探索");
         }
-    } catch (error) {
-        console.error("❌ ノードリストの取得に失敗:", error);
+
+        localStorage.removeItem(CACHE_KEY);
     }
 
-    // 🔹 最後の手段として固定ノードを試す
-    try {
-        const response = await fetch(`${fixedNode}/node/health`);
-        const healthData = await response.json();
-        console.log("healthData========", healthData);
+    // ========================================
+    // ② NodeWatch（リトライ付き）
+    // ========================================
+    let nodes;
 
-        if (healthData && healthData.status.db && healthData.status.apiNode === 'up') {
-            console.log("✅ 固定ノードを使用:", fixedNode);
-            return fixedNode;
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            const res = await fetch(NODEWATCH_URL, {
+                signal: AbortSignal.timeout(NODEWATCH_TIMEOUT)
+            });
+
+            nodes = await res.json();
+            if (nodes?.length) break;
+
+        } catch (e) {
+            console.warn(`NodeWatch retry ${attempt + 1}`, e);
         }
-    } catch (error) {
-        console.error("❌ 固定ノードもダウンしているため、利用可能なノードが見つかりません。");
     }
 
-    return null; // どのノードも使えなかった場合
+    if (!nodes?.length) {
+        console.warn("⚠️ NodeWatch失敗 → fallback");
+        return FALLBACK_NODE;
+    }
+
+    // ========================================
+    // ③ height上位抽出
+    // ========================================
+    nodes.sort((a, b) => b.height - a.height);
+    const candidates = nodes.slice(0, 5);
+
+    console.log("🔍 ノード速度＋同期チェック中...");
+
+    // ========================================
+    // ④ 並列 height + speed 測定
+    // ========================================
+    const results = await Promise.allSettled(
+        candidates.map(async (n) => {
+            const ep = new URL(n.endpoint);
+            ep.protocol = "https:";
+            const origin = ep.origin;
+
+            const start = performance.now();
+
+            const info = await fetch(`${origin}/chain/info`, {
+                signal: AbortSignal.timeout(HEALTH_TIMEOUT)
+            }).then(r => r.json());
+
+            const ms = performance.now() - start;
+
+            return {
+                url: origin,
+                height: Number(info.height),
+                ms
+            };
+        })
+    );
+
+    const ok = results
+        .filter(r => r.status === "fulfilled")
+        .map(r => r.value);
+
+    if (!ok.length) {
+        console.warn("⚠️ 全ノード失敗 → fallback");
+        return FALLBACK_NODE;
+    }
+
+    // ========================================
+    // ⑤ 最新heightだけ残す
+    // ========================================
+    ok.sort((a, b) => b.height - a.height);
+    const maxHeight = ok[0].height;
+
+    const synced = ok.filter(n => maxHeight - n.height <= 2);
+
+    // ========================================
+    // ⑥ その中で最速
+    // ========================================
+    synced.sort((a, b) => a.ms - b.ms);
+    const best = synced[0];
+
+    console.log(
+        "🚀 BEST NODE:",
+        best.url,
+        `height=${best.height}`,
+        `${Math.round(best.ms)}ms`
+    );
+
+    // ========================================
+    // ⑦ キャッシュ保存
+    // ========================================
+    localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({ url: best.url, time: Date.now() })
+    );
+
+    return best.url;
 }
-
 
 async function loadSDK() {
 
