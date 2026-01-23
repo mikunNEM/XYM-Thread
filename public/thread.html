@@ -228,26 +228,31 @@
                     threadElement.classList.add("top-thread");
 
                     // トップスレッドの内容を挿入
-                    threadElement.innerHTML = `
-                        <div class="thread-info">
-                          <div class="thread-date">${ymdhms}</div>
-                        </div>
-                        <br>
-                         <div style="text-align: center">
-                          <div class="avatar-container_2" style="position:relative;">
-                            <div class="avatar"></div>
-                            <span class="smd-name"></span>
-                                <div class="address-tooltip" style="display:none; position:absolute; top:80px; left:50%; transform:translate(-50%, -50%); background-color:#333; color:#fff; padding:5px; border-radius:5px; white-space:nowrap; font-size:13px; z-index:10;">
-                                        ${PublicAccount.address.toString()}
-                                </div>
-                            </div>
-                          </div>
-                         <div class="border-line"></div>
-                         <br>
-                         <h3>${thread_title2}</h3>
+                    const xymAmount = tx.transaction.mosaics[0].amount / Math.pow(10, 6);
+                    const fontSize = Math.min(10 + xymAmount * 10, 40);
 
-                         <div class="thread-footer"></div>
-                         `;
+                    threadElement.innerHTML = `
+    <div class="thread-info">
+      <div class="thread-date">${ymdhms}</div>
+    </div>
+    <br>
+
+    <div style="text-align: center">
+      <div class="avatar-container_2" style="position:relative;">
+        <div class="avatar"></div>
+        <span class="smd-name"></span>
+      </div>
+    </div>
+
+    <div class="border-line"></div>
+    <br>
+
+    <div class="thread-message" style="font-size:${fontSize}px;">
+        ${thread_title2}
+    </div>
+
+    <div class="thread-footer"></div>
+`;
 
                     // 追加する場所にthreadElementを挿入
                     document.getElementById('thread-container').appendChild(threadElement);
